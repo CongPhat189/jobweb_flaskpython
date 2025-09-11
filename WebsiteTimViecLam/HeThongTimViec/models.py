@@ -13,11 +13,6 @@ class DiaChi(db.Model):
         return self.ten_dia_chi
 
 
-class Quyen(db.Model):
-    __tablename__ = "tbl_quyen"
-    id = Column("MaQuyen", Integer, primary_key=True, autoincrement=True)
-    ten_quyen = Column("TenQuyen", String(50), nullable=False)
-
 
 class CapBac(db.Model):
     __tablename__ = "tbl_capbac"
@@ -43,20 +38,6 @@ class LoaiCongViec(db.Model):
     ten_loai_cv = Column("TenLoaiCV", String(100), nullable=False)
 
 
-class NhaTuyenDung(db.Model):
-    __tablename__ = "tbl_nhatuyendung"
-    id = Column("MaNTD", Integer, primary_key=True, autoincrement=True)
-    ten_ntd = Column("TenNTD", String(100), nullable=False)
-    dia_chi = Column("DiaChi", String(200))
-    so_dien_thoai = Column("SoDienThoai", String(20))
-    email = Column("Email", String(100))
-    website = Column("Website", String(100))
-    anh_dai_dien = Column("AnhDaiDien", String(200))
-
-    # Quan hệ 1-n: 1 nhà tuyển dụng có nhiều tin tuyển dụng
-    tin_tuyen_dung = relationship("TinTuyenDung", back_populates="nha_tuyen_dung")
-
-
 class TaiKhoan(db.Model):
     __tablename__ = "tbl_taikhoan"
     id = Column("MaTaiKhoan", Integer, primary_key=True, autoincrement=True)
@@ -64,14 +45,19 @@ class TaiKhoan(db.Model):
     mat_khau = Column("MatKhau", String(100), nullable=False)
     ngay_tao = Column("NgayTao", DateTime, default=datetime.now)
     trang_thai = Column("TrangThai", Boolean, default=True)
+    loai_tai_khoan = Column("LoaiTaiKhoan", String(20))  # "ungvien" hoặc "nhatuyendung"
+
+    __mapper_args__ = {
+        "polymorphic_identity": "taikhoan",
+        "polymorphic_on": loai_tai_khoan
+    }
 
 
-class UngVien(db.Model):
+class UngVien(TaiKhoan):
     __tablename__ = "tbl_ungvien"
-    id = Column("MaUngVien", Integer, primary_key=True, autoincrement=True)
+    id = Column("MaUngVien", Integer, ForeignKey("tbl_taikhoan.MaTaiKhoan"), primary_key=True)
     ten_uv = Column("TenUngVien", String(100), nullable=False)
     so_dien_thoai = Column("SoDienThoai", String(20))
-    email = Column("Email", String(100))
     ngay_sinh = Column("NgaySinh", Date)
     anh_dai_dien = Column("AnhDaiDien", String(200))
     so_thich = Column("SoThich", String(200))
@@ -79,6 +65,25 @@ class UngVien(db.Model):
 
     ho_so = relationship("HoSoXinViec", back_populates="ung_vien")
     ung_tuyen = relationship("UngTuyen", back_populates="ung_vien")
+
+    __mapper_args__ = {
+        "polymorphic_identity": "ungvien",
+    }
+
+
+class NhaTuyenDung(TaiKhoan):
+    __tablename__ = "tbl_nhatuyendung"
+    id = Column("MaNTD", Integer, ForeignKey("tbl_taikhoan.MaTaiKhoan"), primary_key=True)
+    ten_ntd = Column("TenNTD", String(100), nullable=False)
+    dia_chi = Column("DiaChi", String(200))
+    so_dien_thoai = Column("SoDienThoai", String(20))
+    anh_dai_dien = Column("AnhDaiDien", String(200))
+
+    tin_tuyen_dung = relationship("TinTuyenDung", back_populates="nha_tuyen_dung")
+
+    __mapper_args__ = {
+        "polymorphic_identity": "nhatuyendung",
+    }
 
 
 class HoSoXinViec(db.Model):
@@ -149,98 +154,98 @@ if __name__=='__main__':
         db.drop_all()
         db.create_all()
 
-        # Bảng quyền
-        q1 = Quyen(ten_quyen="Admin")
-        q2 = Quyen(ten_quyen="Nhà tuyển dụng")
-        q3 = Quyen(ten_quyen="Ứng viên")
-
-        # Bảng cấp bậc
-        cb1 = CapBac(ten_cap_bac="Thực tập sinh")
-        cb2 = CapBac(ten_cap_bac="Nhân viên")
-        cb3 = CapBac(ten_cap_bac="Trưởng phòng")
-
-        # Bảng mức lương
-        ml1 = MucLuong(ten_muc_luong="5-10 triệu")
-        ml2 = MucLuong(ten_muc_luong="10-20 triệu")
-
-        # Bảng chuyên ngành
-        cn1 = ChuyenNganh(ten_cn="Công nghệ thông tin")
-        cn2 = ChuyenNganh(ten_cn="Kế toán")
-
-        # Bảng loại công việc
-        lcv1 = LoaiCongViec(ten_loai_cv="Toàn thời gian")
-        lcv2 = LoaiCongViec(ten_loai_cv="Bán thời gian")
-
-        # Nhà tuyển dụng
-        ntd1 = NhaTuyenDung(
-            ten_ntd="Công ty ABC",
-            dia_chi="Hà Nội",
-            so_dien_thoai="0123456789",
-            email="contact@abc.com",
-            website="https://abc.com",
-            anh_dai_dien="ntd1.png"
-        )
-
-        # Ứng viên
-        uv1 = UngVien(
-            ten_uv="Nguyễn Văn A",
-            so_dien_thoai="0987654321",
-            email="vana@gmail.com",
-            ngay_sinh=datetime(1995, 5, 10),
-            anh_dai_dien="a.png",
-            so_thich="Đọc sách, du lịch",
-            dia_chi="Hồ Chí Minh"
-        )
-
-        # Hồ sơ xin việc
-        hs1 = HoSoXinViec(
-            ten_hs="CV IT Nguyễn Văn A",
-            ung_vien=uv1,
-            chuyen_nganh=cn1,
-            loai_cv=lcv1,
-            cap_bac=cb2,
-            muc_tieu_nghe_nghiep="Phát triển kỹ năng lập trình",
-            kinh_nghiem="2 năm Java",
-            ky_nang="Python, Django, React",
-            hoc_van="ĐH CNTT HCM",
-            giai_thuong="Top 10 sinh viên xuất sắc"
-        )
-
-        # Tin tuyển dụng
-        ttd1 = TinTuyenDung(
-            nha_tuyen_dung=ntd1,
-            chuyen_nganh=cn1,
-            loai_cv=lcv1,
-            muc_luong=ml2,
-            cap_bac=cb2,
-            ten_cong_viec="Lập trình viên Python",
-            dia_chi_lam_viec="Hà Nội",
-            so_luong=2,
-            gioi_tinh_yc="Không yêu cầu",
-            mo_ta="Phát triển ứng dụng web bằng Django",
-            yeu_cau="Có kinh nghiệm 1-2 năm",
-            ky_nang_lien_quan="Python, Django, SQL",
-            quyen_loi="Thưởng lễ, tết, bảo hiểm đầy đủ",
-            ngay_dang=datetime(2025, 9, 1),
-            han_nop=datetime(2025, 9, 30),
-            trang_thai=True
-        )
-
-        # Ứng tuyển
-        ut1 = UngTuyen(
-            tin_tuyen_dung=ttd1,
-            ung_vien=uv1,
-            link_cv="cv_nguyenvana.pdf",
-            ngay_ung_tuyen=datetime(2025, 9, 5)
-        )
-
-        db.session.add_all([
-            q1, q2, q3,
-            cb1, cb2, cb3,
-            ml1, ml2,
-            cn1, cn2,
-            lcv1, lcv2,
-            ntd1, uv1, hs1, ttd1, ut1
-        ])
-
-        db.session.commit()
+        # # Bảng quyền
+        # q1 = Quyen(ten_quyen="Admin")
+        # q2 = Quyen(ten_quyen="Nhà tuyển dụng")
+        # q3 = Quyen(ten_quyen="Ứng viên")
+        #
+        # # Bảng cấp bậc
+        # cb1 = CapBac(ten_cap_bac="Thực tập sinh")
+        # cb2 = CapBac(ten_cap_bac="Nhân viên")
+        # cb3 = CapBac(ten_cap_bac="Trưởng phòng")
+        #
+        # # Bảng mức lương
+        # ml1 = MucLuong(ten_muc_luong="5-10 triệu")
+        # ml2 = MucLuong(ten_muc_luong="10-20 triệu")
+        #
+        # # Bảng chuyên ngành
+        # cn1 = ChuyenNganh(ten_cn="Công nghệ thông tin")
+        # cn2 = ChuyenNganh(ten_cn="Kế toán")
+        #
+        # # Bảng loại công việc
+        # lcv1 = LoaiCongViec(ten_loai_cv="Toàn thời gian")
+        # lcv2 = LoaiCongViec(ten_loai_cv="Bán thời gian")
+        #
+        # # Nhà tuyển dụng
+        # ntd1 = NhaTuyenDung(
+        #     ten_ntd="Công ty ABC",
+        #     dia_chi="Hà Nội",
+        #     so_dien_thoai="0123456789",
+        #     email="contact@abc.com",
+        #     website="https://abc.com",
+        #     anh_dai_dien="ntd1.png"
+        # )
+        #
+        # # Ứng viên
+        # uv1 = UngVien(
+        #     ten_uv="Nguyễn Văn A",
+        #     so_dien_thoai="0987654321",
+        #     email="vana@gmail.com",
+        #     ngay_sinh=datetime(1995, 5, 10),
+        #     anh_dai_dien="a.png",
+        #     so_thich="Đọc sách, du lịch",
+        #     dia_chi="Hồ Chí Minh"
+        # )
+        #
+        # # Hồ sơ xin việc
+        # hs1 = HoSoXinViec(
+        #     ten_hs="CV IT Nguyễn Văn A",
+        #     ung_vien=uv1,
+        #     chuyen_nganh=cn1,
+        #     loai_cv=lcv1,
+        #     cap_bac=cb2,
+        #     muc_tieu_nghe_nghiep="Phát triển kỹ năng lập trình",
+        #     kinh_nghiem="2 năm Java",
+        #     ky_nang="Python, Django, React",
+        #     hoc_van="ĐH CNTT HCM",
+        #     giai_thuong="Top 10 sinh viên xuất sắc"
+        # )
+        #
+        # # Tin tuyển dụng
+        # ttd1 = TinTuyenDung(
+        #     nha_tuyen_dung=ntd1,
+        #     chuyen_nganh=cn1,
+        #     loai_cv=lcv1,
+        #     muc_luong=ml2,
+        #     cap_bac=cb2,
+        #     ten_cong_viec="Lập trình viên Python",
+        #     dia_chi_lam_viec="Hà Nội",
+        #     so_luong=2,
+        #     gioi_tinh_yc="Không yêu cầu",
+        #     mo_ta="Phát triển ứng dụng web bằng Django",
+        #     yeu_cau="Có kinh nghiệm 1-2 năm",
+        #     ky_nang_lien_quan="Python, Django, SQL",
+        #     quyen_loi="Thưởng lễ, tết, bảo hiểm đầy đủ",
+        #     ngay_dang=datetime(2025, 9, 1),
+        #     han_nop=datetime(2025, 9, 30),
+        #     trang_thai=True
+        # )
+        #
+        # # Ứng tuyển
+        # ut1 = UngTuyen(
+        #     tin_tuyen_dung=ttd1,
+        #     ung_vien=uv1,
+        #     link_cv="cv_nguyenvana.pdf",
+        #     ngay_ung_tuyen=datetime(2025, 9, 5)
+        # )
+        #
+        # db.session.add_all([
+        #     q1, q2, q3,
+        #     cb1, cb2, cb3,
+        #     ml1, ml2,
+        #     cn1, cn2,
+        #     lcv1, lcv2,
+        #     ntd1, uv1, hs1, ttd1, ut1
+        # ])
+        #
+        # db.session.commit()
