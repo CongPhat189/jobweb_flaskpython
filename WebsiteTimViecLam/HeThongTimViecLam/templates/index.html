@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang chủ</title>
+</head>
+<body>
+    <h1>Danh sách tin tuyển dụng</h1>
+
+    {% if ttd %}
+        <ul>
+            {% for tin in ttd %}
+                <li>
+                    <strong>{{ tin.ten_cong_viec }}</strong> <br>
+                    Công ty: {{ tin.nha_tuyen_dung.ten_ntd }} <br>
+                    Địa chỉ: {{ tin.dia_chi_lam_viec }} <br>
+                    Lương: {{ tin.muc_luong.ten_muc_luong if tin.muc_luong else "Thỏa thuận" }} <br>
+                    Hạn nộp: {{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else "Không có" }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Chưa có tin tuyển dụng nào.</p>
+    {% endif %}
+</body>
+</html>
