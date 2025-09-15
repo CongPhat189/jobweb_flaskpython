@@ -59,23 +59,37 @@ def createHoSoXinViec(
         print(f"Lỗi khi tạo hồ sơ xin việc: {ex}")
         return None
 
-def ungTuyen(ma_ttd, ma_hoso=None, cv_url=None):
+def ungTuyen(ma_ttd, file=None):
     try:
-        if not current_user.is_authenticated:
-            return None
+        # if not current_user.is_authenticated:
+        #     print("Người dùng chưa đăng nhập.")
+        #     return None
 
+        cv_url = None
+        if file:
+            # Upload file PDF lên Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                file,
+                folder="cv_uploads",
+                resource_type="raw"   # bắt buộc để nhận PDF, DOCX...
+            )
+            cv_url = upload_result["secure_url"]
+
+        # Tạo bản ghi ứng tuyển
         ung_tuyen = UngTuyen(
-            ma_uv=current_user.id,
+            # ma_uv=current_user.id, dùng dòng này sau khi có login
+            ma_uv=1,
             ma_ttd=ma_ttd,
-            ma_hoso=ma_hoso,
-            cv=cv_url,
-            ngay_nop=datetime.now()
+            link_cv=cv_url,
+            ngay_ung_tuyen=datetime.now()
         )
 
         db.session.add(ung_tuyen)
         db.session.commit()
 
+        print("Ứng tuyển thành công!")
         return ung_tuyen
+
     except Exception as ex:
         db.session.rollback()
         print(f"Lỗi khi ứng tuyển: {ex}")

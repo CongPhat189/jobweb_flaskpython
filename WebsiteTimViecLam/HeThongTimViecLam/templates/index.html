@@ -15,7 +15,15 @@
                     Công ty: {{ tin.nha_tuyen_dung.ten_ntd }} <br>
                     Địa chỉ: {{ tin.dia_chi_lam_viec }} <br>
                     Lương: {{ tin.muc_luong.ten_muc_luong if tin.muc_luong else "Thỏa thuận" }} <br>
-                    Hạn nộp: {{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else "Không có" }}
+                    Hạn nộp: {{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else "Không có" }} <br><br>
+
+                    <!-- Form ứng tuyển -->
+                    <form action="{{ url_for('apply', ma_ttd=tin.id) }}" method="post" enctype="multipart/form-data">
+                        <label for="cv">Chọn CV (PDF):</label>
+                        <input type="file" name="cv" accept=".pdf" required>
+                        <button type="submit">Ứng tuyển</button>
+                    </form>
+                    <hr>
                 </li>
             {% endfor %}
         </ul>
