@@ -4,8 +4,32 @@ from WebsiteTimViecLam.HeThongTimViecLam import app,db
 import hashlib
 import cloudinary
 import cloudinary.uploader
-from sqlalchemy import func
 from datetime import datetime
+
+def auth_user(username,password,role=None):
+    # mat_khau = str(hashlib.md5(password.encode('utf-8')).hexdigest())
+    mat_khau=password
+    print(username)
+    print(mat_khau)
+    print(TaiKhoan.mat_khau)
+    return TaiKhoan.query.filter(TaiKhoan.username.__eq__(username),TaiKhoan.mat_khau.__eq__(mat_khau)).first()
+
+def get_user_by_ID(id):
+    return TaiKhoan.query.get(id)
+
+def add_user(name,username,password,avatar=None):
+    password=str(hashlib.md5(password.encode('utf-8')).hexdigest())
+    tk=TaiKhoan(username=username,mat_khau=password)
+
+    if avatar:
+        res = cloudinary.uploader.upload(avatar)
+        tk.avatar=res.get('secure_url')
+    db.session.add(tk)
+    db.session.commit()
+    id=tk.id
+    u = UngVien(id=id, name=name)
+    db.session.add(u)
+    db.session.commit()
 
 def loadTinTuyenDung(id=None,page=1):
     query=TinTuyenDung.query
@@ -58,6 +82,51 @@ def createHoSoXinViec(
         db.session.rollback()
         print(f"Lỗi khi tạo hồ sơ xin việc: {ex}")
         return None
+
+def tao_cv(
+    ten_hs,
+    ma_uv,
+    ma_cn=None,
+    ma_loai_cv=None,
+    ma_cap_bac=None,
+    muc_tieu=None,
+    kinh_nghiem=None,
+    ky_nang=None,
+    hoc_van=None,
+    giai_thuong=None,
+    file=None
+):
+    """
+    Tạo hồ sơ xin việc (CV) cho ứng viên.
+    Upload file CV (PDF) lên Cloudinary, sau đó lưu vào DB.
+    Trả về object HoSoXinViec đã được lưu.
+    """
+    file_url = None
+    if file:
+        upload_result = cloudinary.uploader.upload(
+            file,
+            folder="cv_uploads",
+            resource_type="raw"  # cho phép PDF/Word
+        )
+        file_url = upload_result.get("secure_url")
+
+    hs = HoSoXinViec(
+        ten_hs=ten_hs,
+        ma_uv=ma_uv,
+        ma_cn=ma_cn,
+        ma_loai_cv=ma_loai_cv,
+        ma_cap_bac=ma_cap_bac,
+        muc_tieu_nghe_nghiep=muc_tieu,
+        kinh_nghiem=kinh_nghiem,
+        ky_nang=ky_nang,
+        hoc_van=hoc_van,
+        giai_thuong=giai_thuong,
+        file_cv=file_url
+    )
+
+    db.session.add(hs)
+    db.session.commit()
+    return hs
 
 def ungTuyen(ma_ttd, file=None):
     try:

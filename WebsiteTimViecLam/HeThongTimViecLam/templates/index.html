@@ -1,34 +1,459 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Trang chủ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobConnect - Tìm Việc Làm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(255, 255, 255, 1) 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4285f4;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #4285f4;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #4285f4;
+            border: 1px solid #4285f4;
+        }
+
+        .apply-btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+            text-decoration: none;
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .apply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-primary {
+            background: #4285f4;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .hero-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #3367d6;
+        }
+
+        /* Jobs Section */
+        .jobs-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border: 1px solid #f0f0f0;
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .job-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .company-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .job-info h3 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .company-name {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .job-details {
+            margin: 1.5rem 0;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            color: #666;
+        }
+
+        .detail-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .salary {
+            color: #34a853;
+            font-weight: 600;
+        }
+
+        .deadline {
+            color: #ea4335;
+            font-weight: 500;
+        }
+
+        .apply-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input:hover {
+            border-color: #4285f4;
+            background: #f8f9ff;
+        }
+
+        .file-input input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .apply-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .apply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+        }
+
+        .no-jobs {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .no-jobs-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Danh sách tin tuyển dụng</h1>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">JobConnect</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">Trang chủ</a></li>
+                    <li><a href="#">Việc làm</a></li>
+                    <li><a href="#">Công ty</a></li>
+                    <li><a href="/taocv">Tạo CV</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <a href="#" class="btn btn-outline">Đăng nhập</a>
+                <a href="#" class="btn btn-primary">Đăng ký</a>
+            </div>
+        </div>
+    </header>
 
-    {% if ttd %}
-        <ul>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1>Tìm Việc Làm<br><span style="color: #ffd700;">Mơ Ước Của Bạn</span></h1>
+            <p>Kết nối với hàng ngàn cơ hội việc làm từ các công ty hàng đầu.<br>Tìm CV chuyên nghiệp và nâng tầm nghề ngày hôm nay</p>
+
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="🔍 Vị trí, công ty">
+                <input type="text" class="search-input" placeholder="📍 Địa điểm">
+                <input type="text" class="search-input" placeholder="💰 Mức lương">
+                <button class="search-btn">Tìm kiếm Việc Làm</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Jobs Section -->
+    <section class="jobs-section">
+        <div class="section-header">
+            <h2 class="section-title">Việc Làm Nổi Bật</h2>
+            <p class="section-subtitle">Khám phá những cơ hội nghề nghiệp tốt nhất dành cho bạn</p>
+        </div>
+
+        {% if ttd %}
+        <div class="jobs-grid">
             {% for tin in ttd %}
-                <li>
-                    <strong>{{ tin.ten_cong_viec }}</strong> <br>
-                    Công ty: {{ tin.nha_tuyen_dung.ten_ntd }} <br>
-                    Địa chỉ: {{ tin.dia_chi_lam_viec }} <br>
-                    Lương: {{ tin.muc_luong.ten_muc_luong if tin.muc_luong else "Thỏa thuận" }} <br>
-                    Hạn nộp: {{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else "Không có" }} <br><br>
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="company-logo">
+                        {{ tin.nha_tuyen_dung.ten_ntd[0] if tin.nha_tuyen_dung.ten_ntd else "C" }}
+                    </div>
+                    <div class="job-info">
+                        <h3>{{ tin.ten_cong_viec }}</h3>
+                        <div class="company-name">{{ tin.nha_tuyen_dung.ten_ntd }}</div>
+                    </div>
+                </div>
 
-                    <!-- Form ứng tuyển -->
+                <div class="job-details">
+                    <div class="detail-item">
+                        <svg class="detail-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>{{ tin.dia_chi_lam_viec }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <svg class="detail-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"/>
+                        </svg>
+                        <span class="salary">{{ tin.muc_luong.ten_muc_luong if tin.muc_luong else "Thỏa thuận" }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <svg class="detail-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                        </svg>
+                        <span class="deadline">Hạn nộp: {{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else "Không có" }}</span>
+                    </div>
+                </div>
+
+               <div class="apply-section">
                     <form action="{{ url_for('apply', ma_ttd=tin.id) }}" method="post" enctype="multipart/form-data">
-                        <label for="cv">Chọn CV (PDF):</label>
-                        <input type="file" name="cv" accept=".pdf" required>
-                        <button type="submit">Ứng tuyển</button>
+                        <div class="file-input-wrapper">
+                            <div class="file-input">
+                                <input type="file" name="cv" accept=".pdf" required>
+                                📎 Chọn CV (PDF)
+                            </div>
+                        </div>
+                        <a href="{{ url_for('ung_tuyen', ma_ttd=tin.id) }}" class="apply-btn">🚀 Ứng tuyển ngay</a>
                     </form>
-                    <hr>
-                </li>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
-    {% else %}
-        <p>Chưa có tin tuyển dụng nào.</p>
-    {% endif %}
+        </div>
+        {% else %}
+        <div class="no-jobs">
+            <div class="no-jobs-icon">📋</div>
+            <h3>Chưa có tin tuyển dụng nào</h3>
+            <p>Vui lòng quay lại sau hoặc thử tìm kiếm với từ khóa khác</p>
+        </div>
+        {% endif %}
+    </section>
 </body>
 </html>

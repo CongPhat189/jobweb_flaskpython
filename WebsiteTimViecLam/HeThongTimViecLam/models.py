@@ -1,3 +1,5 @@
+from flask_login import UserMixin
+
 from WebsiteTimViecLam.HeThongTimViecLam import  db,app
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, Date, DateTime
 from sqlalchemy.orm import relationship, backref
@@ -38,9 +40,11 @@ class LoaiCongViec(db.Model):
     ten_loai_cv = Column("TenLoaiCV", String(100), nullable=False)
 
 
-class TaiKhoan(db.Model):
+
+class TaiKhoan(db.Model,UserMixin):
     __tablename__ = "tbl_taikhoan"
     id = Column("MaTaiKhoan", Integer, primary_key=True, autoincrement=True)
+    username=Column(String(50),nullable=False, unique=True)
     email = Column("Email", String(100), unique=True, nullable=False)
     mat_khau = Column("MatKhau", String(100), nullable=False)
     ngay_tao = Column("NgayTao", DateTime, default=datetime.now)
@@ -99,7 +103,7 @@ class HoSoXinViec(db.Model):
     ky_nang = Column("KyNang", String(500))
     hoc_van = Column("HocVan", String(500))
     giai_thuong = Column("GiaiThuong", String(500))
-    file_cv = db.Column("FileCV", db.String(500))  # lưu URL PDF hoặc path
+    file_cv = db.Column("FileCV", String(500))  # lưu URL PDF hoặc path
 
     # Quan hệ
     ung_vien = relationship("UngVien", back_populates="ho_so")
@@ -192,6 +196,7 @@ if __name__=='__main__':
         # Seed tài khoản
         uv1 = UngVien(
             email="uv1@example.com",
+            username='a',
             mat_khau="123456",
             ten_uv="Nguyễn Văn A",
             so_dien_thoai="0912345678",
@@ -202,6 +207,7 @@ if __name__=='__main__':
 
         uv2 = UngVien(
             email="uv2@example.com",
+            username='b',
             mat_khau="123456",
             ten_uv="Trần Thị B",
             so_dien_thoai="0987654321",
@@ -212,6 +218,7 @@ if __name__=='__main__':
 
         ntd1 = NhaTuyenDung(
             email="ntd1@company.com",
+            username='c',
             mat_khau="123456",
             ten_ntd="Công ty TNHH ABC",
             dia_chi="TP.HCM",
