@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Đăng ký - JobConnect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .auth-card {
+            max-width: 920px;
+            margin: 48px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            background: #fff;
+        }
+        .left-side {
+            background: linear-gradient(180deg,#fff 0%, #fbfbff 100%);
+            padding: 36px;
+        }
+        .right-side {
+            padding: 36px;
+        }
+        .brand {
+            font-weight: 700;
+            color: #0d6efd;
+            font-size: 22px;
+        }
+        .small-muted { color: #6c757d; font-size: 14px; }
+        .form-control:focus { box-shadow: none; border-color: #86b7fe; }
+        .btn-primary { border-radius: 10px; padding: 10px 16px; }
+        @media (max-width: 767px) {
+            .auth-card { margin: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="auth-card d-flex">
+        <!-- Left: info / brand -->
+        <div class="left-side flex-fill">
+            <div class="mb-3">
+                <a href="{{ url_for('index') }}" class="brand text-decoration-none">JobConnect</a>
+            </div>
+            <h3 class="mb-2">Tham gia cùng chúng tôi!</h3>
+            <p class="small-muted mb-4">Tạo tài khoản để ứng tuyển công việc và quản lý hồ sơ của bạn.</p>
+
+            <h6 class="mt-3">Lợi ích khi đăng ký</h6>
+            <ul class="small-muted">
+                <li>Tìm kiếm và ứng tuyển dễ dàng</li>
+                <li>Tạo CV chuyên nghiệp</li>
+                <li>Theo dõi lịch sử ứng tuyển</li>
+            </ul>
+
+            <div class="mt-4 small-muted">
+                <strong>Đã có tài khoản?</strong>
+                <a href="/login">Đăng nhập</a>
+            </div>
+        </div>
+
+        <!-- Right: register form -->
+        <div class="right-side flex-fill border-start">
+            <h4 class="mb-3">Đăng ký</h4>
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('register_process') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Họ và tên</label>
+                    <input id="name" name="name" type="text" required class="form-control"
+                           placeholder="Nhập họ và tên" value="{{ request.form.name or '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Tên đăng nhập</label>
+                    <input id="username" name="username" type="text" required class="form-control"
+                           placeholder="Tên đăng nhập" value="{{ request.form.username or '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input id="email" name="email" type="email" required class="form-control"
+                           placeholder="Nhập email" value="{{ request.form.email or '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <input id="password" name="password" type="password" required class="form-control"
+                           placeholder="Mật khẩu">
+                </div>
+
+                <div class="mb-3">
+                    <label for="confirm" class="form-label">Xác nhận mật khẩu</label>
+                    <input id="confirm" name="confirm" type="password" required class="form-control"
+                           placeholder="Nhập lại mật khẩu">
+                </div>
+
+                <div class="mb-3">
+                    <label for="avatar" class="form-label">Ảnh đại diện</label>
+                    <input id="avatar" name="avatar" type="file" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
+            </form>
+
+
+            <div class="mt-4 small text-muted">
+                <p>Bạn đã có tài khoản? <a href="/login">Đăng nhập</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

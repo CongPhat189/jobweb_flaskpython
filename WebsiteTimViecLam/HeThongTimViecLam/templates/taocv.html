@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JobConnect - Tạo Hồ Sơ Xin Việc</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{background:#f5f8fb;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .navbar {background: white; box-shadow: 0 2px 6px rgba(15,23,42,0.06)}
+    .hero{padding:56px 0}
+    .card-ghost{border-radius:12px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+    .cv-preview{background:#e9eef6;border-radius:10px;display:flex;align-items:center;justify-content:center;height:260px}
+    .cv-caption{font-size:14px;color:#6b7280;margin-top:8px;text-align:center}
+    .form-card{padding:20px}
+    .progress-small{height:10px;border-radius:8px}
+    .btn-upload{background:#2563eb;color:white}
+    .btn-create{background:#10b981;color:white}
+    @media (max-width:991px){.cv-preview{height:200px}}
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="#"><img src="" alt="logo" style="width:38px;height:34px;margin-right:8px"> <strong style="color:#2563eb">JobConnect</strong></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Việc làm</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Công ty</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Tạo CV</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Blog</a></li>
+      </ul>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary">Đăng nhập</button>
+        <button class="btn btn-primary">Đăng ký</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2>Tạo CV Chuyên Nghiệp</h2>
+      <p class="text-muted">Xây dựng hồ sơ cá nhân ấn tượng và tăng cơ hội được tuyển dụng</p>
+    </div>
+
+    <div class="row g-4 justify-content-center align-items-start">
+      <div class="col-lg-7">
+        <div class="card card-ghost p-4">
+          <div class="cv-preview">
+            <!-- Thay ảnh preview thực tế nếu cần -->
+            <img src="/static/img/cv-sample.png" alt="Mẫu CV" style="max-height:220px;max-width:100%;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(2,6,23,0.06))">
+          </div>
+          <div class="cv-caption">Mẫu CV Chuyên Nghiệp<br><small class="text-muted">Thiết kế hiện đại, dễ đọc</small></div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card card-ghost form-card">
+          <h6 class="mb-3">Thông Tin Cá Nhân</h6>
+
+          <form id="cvForm" action="/taocv" method="POST" enctype="multipart/form-data">
+            <div class="mb-2">
+              <label class="form-label small">Họ và tên</label>
+              <input class="form-control" name="ten_hs" placeholder="Nguyễn Văn A" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Email</label>
+              <input type="email" class="form-control" name="email" placeholder="nguyen@example.com" required>
+            </div>
+            <div class="row g-2">
+              <div class="col-6 mb-2">
+                <label class="form-label small">SĐT</label>
+                <input class="form-control" name="sdt" placeholder="0912345678">
+              </div>
+              <div class="col-6 mb-2">
+                <label class="form-label small">Địa chỉ</label>
+                <input class="form-control" name="diachi" placeholder="Hồ Chí Minh">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Vị trí mong muốn</label>
+              <input class="form-control" name="vitri" placeholder="Frontend Developer">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small">Tiến Trình Hoàn Thành <span id="progressLabel" class="float-end">75%</span></label>
+              <div class="progress progress-small mb-2">
+                <div id="progressBar" class="progress-bar" role="progressbar" style="width:75%"></div>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <label class="btn btn-upload btn-block" for="fileInput">📤 Tải CV Lên</label>
+              <input type="file" id="fileInput" name="file_cv" accept="application/pdf" style="display:none">
+              <button type="submit" class="btn btn-create">➕ Tạo CV Mới</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-5">
+      <h5>Kết Nối Với Nhà Tuyển Dụng</h5>
+      <p class="text-muted">Khám phá cơ hội nghề nghiệp tại các công ty hàng đầu</p>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // JS nhỏ để cập nhật tiến trình khi chọn file
+  const fileInput = document.getElementById('fileInput');
+  const progressBar = document.getElementById('progressBar');
+  const progressLabel = document.getElementById('progressLabel');
+
+  fileInput.addEventListener('change', ()=>{
+    if(!fileInput.files || fileInput.files.length===0) return;
+    // Giả lập upload: đặt progress = 100
+    progressBar.style.width = '100%';
+    progressLabel.textContent = '100%';
+  });
+</script>
+
+</body>
+</html>

@@ -1,4 +1,6 @@
-from WebsiteTimViecLam.HeThongTimViec import  db,app
+from flask_login import UserMixin
+
+from WebsiteTimViecLam.HeThongTimViecLam import  db,app
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, Date, DateTime
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime
@@ -38,9 +40,11 @@ class LoaiCongViec(db.Model):
     ten_loai_cv = Column("TenLoaiCV", String(100), nullable=False)
 
 
-class TaiKhoan(db.Model):
+
+class TaiKhoan(db.Model,UserMixin):
     __tablename__ = "tbl_taikhoan"
     id = Column("MaTaiKhoan", Integer, primary_key=True, autoincrement=True)
+    username=Column(String(50),nullable=False, unique=True)
     email = Column("Email", String(100), unique=True, nullable=False)
     mat_khau = Column("MatKhau", String(100), nullable=False)
     ngay_tao = Column("NgayTao", DateTime, default=datetime.now)
@@ -99,6 +103,7 @@ class HoSoXinViec(db.Model):
     ky_nang = Column("KyNang", String(500))
     hoc_van = Column("HocVan", String(500))
     giai_thuong = Column("GiaiThuong", String(500))
+    file_cv = db.Column("FileCV", String(500))  # lưu URL PDF hoặc path
 
     # Quan hệ
     ung_vien = relationship("UngVien", back_populates="ho_so")
@@ -154,98 +159,121 @@ if __name__=='__main__':
         db.drop_all()
         db.create_all()
 
-        # # Bảng quyền
-        # q1 = Quyen(ten_quyen="Admin")
-        # q2 = Quyen(ten_quyen="Nhà tuyển dụng")
-        # q3 = Quyen(ten_quyen="Ứng viên")
-        #
-        # # Bảng cấp bậc
-        # cb1 = CapBac(ten_cap_bac="Thực tập sinh")
-        # cb2 = CapBac(ten_cap_bac="Nhân viên")
-        # cb3 = CapBac(ten_cap_bac="Trưởng phòng")
-        #
-        # # Bảng mức lương
-        # ml1 = MucLuong(ten_muc_luong="5-10 triệu")
-        # ml2 = MucLuong(ten_muc_luong="10-20 triệu")
-        #
-        # # Bảng chuyên ngành
-        # cn1 = ChuyenNganh(ten_cn="Công nghệ thông tin")
-        # cn2 = ChuyenNganh(ten_cn="Kế toán")
-        #
-        # # Bảng loại công việc
-        # lcv1 = LoaiCongViec(ten_loai_cv="Toàn thời gian")
-        # lcv2 = LoaiCongViec(ten_loai_cv="Bán thời gian")
-        #
-        # # Nhà tuyển dụng
-        # ntd1 = NhaTuyenDung(
-        #     ten_ntd="Công ty ABC",
-        #     dia_chi="Hà Nội",
-        #     so_dien_thoai="0123456789",
-        #     email="contact@abc.com",
-        #     website="https://abc.com",
-        #     anh_dai_dien="ntd1.png"
-        # )
-        #
-        # # Ứng viên
-        # uv1 = UngVien(
-        #     ten_uv="Nguyễn Văn A",
-        #     so_dien_thoai="0987654321",
-        #     email="vana@gmail.com",
-        #     ngay_sinh=datetime(1995, 5, 10),
-        #     anh_dai_dien="a.png",
-        #     so_thich="Đọc sách, du lịch",
-        #     dia_chi="Hồ Chí Minh"
-        # )
-        #
-        # # Hồ sơ xin việc
-        # hs1 = HoSoXinViec(
-        #     ten_hs="CV IT Nguyễn Văn A",
-        #     ung_vien=uv1,
-        #     chuyen_nganh=cn1,
-        #     loai_cv=lcv1,
-        #     cap_bac=cb2,
-        #     muc_tieu_nghe_nghiep="Phát triển kỹ năng lập trình",
-        #     kinh_nghiem="2 năm Java",
-        #     ky_nang="Python, Django, React",
-        #     hoc_van="ĐH CNTT HCM",
-        #     giai_thuong="Top 10 sinh viên xuất sắc"
-        # )
-        #
-        # # Tin tuyển dụng
-        # ttd1 = TinTuyenDung(
-        #     nha_tuyen_dung=ntd1,
-        #     chuyen_nganh=cn1,
-        #     loai_cv=lcv1,
-        #     muc_luong=ml2,
-        #     cap_bac=cb2,
-        #     ten_cong_viec="Lập trình viên Python",
-        #     dia_chi_lam_viec="Hà Nội",
-        #     so_luong=2,
-        #     gioi_tinh_yc="Không yêu cầu",
-        #     mo_ta="Phát triển ứng dụng web bằng Django",
-        #     yeu_cau="Có kinh nghiệm 1-2 năm",
-        #     ky_nang_lien_quan="Python, Django, SQL",
-        #     quyen_loi="Thưởng lễ, tết, bảo hiểm đầy đủ",
-        #     ngay_dang=datetime(2025, 9, 1),
-        #     han_nop=datetime(2025, 9, 30),
-        #     trang_thai=True
-        # )
-        #
-        # # Ứng tuyển
-        # ut1 = UngTuyen(
-        #     tin_tuyen_dung=ttd1,
-        #     ung_vien=uv1,
-        #     link_cv="cv_nguyenvana.pdf",
-        #     ngay_ung_tuyen=datetime(2025, 9, 5)
-        # )
-        #
-        # db.session.add_all([
-        #     q1, q2, q3,
-        #     cb1, cb2, cb3,
-        #     ml1, ml2,
-        #     cn1, cn2,
-        #     lcv1, lcv2,
-        #     ntd1, uv1, hs1, ttd1, ut1
-        # ])
-        #
-        # db.session.commit()
+        diachis = [
+            DiaChi(ten_dia_chi="Hà Nội"),
+            DiaChi(ten_dia_chi="TP. Hồ Chí Minh"),
+            DiaChi(ten_dia_chi="Đà Nẵng")
+        ]
+
+        capbacs = [
+            CapBac(ten_cap_bac="Thực tập"),
+            CapBac(ten_cap_bac="Nhân viên"),
+            CapBac(ten_cap_bac="Trưởng nhóm"),
+            CapBac(ten_cap_bac="Quản lý")
+        ]
+
+        mucluongs = [
+            MucLuong(ten_muc_luong="Dưới 10 triệu"),
+            MucLuong(ten_muc_luong="10 - 20 triệu"),
+            MucLuong(ten_muc_luong="Trên 20 triệu")
+        ]
+
+        chuyennganhs = [
+            ChuyenNganh(ten_cn="Công nghệ thông tin"),
+            ChuyenNganh(ten_cn="Kế toán"),
+            ChuyenNganh(ten_cn="Marketing")
+        ]
+
+        loaicongviecs = [
+            LoaiCongViec(ten_loai_cv="Full-time"),
+            LoaiCongViec(ten_loai_cv="Part-time"),
+            LoaiCongViec(ten_loai_cv="Remote")
+        ]
+
+        db.session.add_all(diachis + capbacs + mucluongs + chuyennganhs + loaicongviecs)
+        db.session.commit()
+
+        # Seed tài khoản
+        uv1 = UngVien(
+            email="uv1@example.com",
+            username='a',
+            mat_khau="123456",
+            ten_uv="Nguyễn Văn A",
+            so_dien_thoai="0912345678",
+            ngay_sinh=datetime(1998, 5, 12),
+            dia_chi="Hà Nội",
+            so_thich="Đọc sách, du lịch"
+        )
+
+        uv2 = UngVien(
+            email="uv2@example.com",
+            username='b',
+            mat_khau="123456",
+            ten_uv="Trần Thị B",
+            so_dien_thoai="0987654321",
+            ngay_sinh=datetime(2000, 7, 20),
+            dia_chi="TP.HCM",
+            so_thich="Chạy bộ, nghe nhạc"
+        )
+
+        ntd1 = NhaTuyenDung(
+            email="ntd1@company.com",
+            username='c',
+            mat_khau="123456",
+            ten_ntd="Công ty TNHH ABC",
+            dia_chi="TP.HCM",
+            so_dien_thoai="0909123456"
+        )
+
+        db.session.add_all([uv1, uv2, ntd1])
+        db.session.commit()
+
+        # Seed hồ sơ xin việc
+        hs1 = HoSoXinViec(
+            ten_hs="CV Nguyễn Văn A",
+            ma_uv=uv1.id,
+            ma_cn=1,
+            ma_loai_cv=1,
+            ma_cap_bac=2,
+            muc_tieu_nghe_nghiep="Phát triển kỹ năng lập trình backend",
+            kinh_nghiem="2 năm làm Python Developer",
+            ky_nang="Python, Django, SQL",
+            hoc_van="Đại học CNTT",
+            giai_thuong="Giải Nhất Hackathon 2022"
+        )
+
+        db.session.add(hs1)
+        db.session.commit()
+
+        # Seed tin tuyển dụng
+        ttd1 = TinTuyenDung(
+            ma_ntd=ntd1.id,
+            ma_cn=1,
+            ma_loai_cv=1,
+            ma_muc_luong=2,
+            ma_cap_bac=2,
+            ten_cong_viec="Lập trình viên Python",
+            dia_chi_lam_viec="Quận 1, TP.HCM",
+            so_luong=2,
+            gioi_tinh_yc="Không yêu cầu",
+            mo_ta="Phát triển API cho hệ thống quản lý",
+            yeu_cau="Có kinh nghiệm với Django/Flask",
+            ky_nang_lien_quan="Python, REST API, SQL",
+            quyen_loi="Bảo hiểm, lương tháng 13",
+            ngay_dang=datetime.today(),
+            han_nop=datetime(2025, 12, 31),
+            trang_thai=True
+        )
+
+        db.session.add(ttd1)
+        db.session.commit()
+
+        # Seed ứng tuyển
+        ut1 = UngTuyen(
+            ma_ttd=ttd1.id,
+            ma_uv=uv1.id,
+            link_cv="http://example.com/cv_nguyenvana.pdf"
+        )
+
+        db.session.add(ut1)
+        db.session.commit()
