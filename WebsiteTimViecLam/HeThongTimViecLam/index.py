@@ -76,6 +76,46 @@ def login_process():
             return redirect(next if next else '/')
     return render_template('login.html')
 
+@app.route("/ungvien/applied_jobs")
+@login_required
+def applied_jobs():
+    jobs = dao.get_applied_jobs(current_user.id)
+    for job in jobs:
+        print(job.nha_tuyen_dung)
+        print(job.muc_luong.ten_muc_luong)
+    return render_template("applied_jobs.html", jobs=jobs)
+
+@app.route("/logout")
+def logout_process():
+    logout_user()
+    return redirect('/login')
+
+@app.route("/register", methods=['GET', 'POST'])
+@annonymous_user
+def register_process():
+    err_msg = None
+    if request.method == 'POST':
+        name = request.form.get('name')
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm = request.form.get('confirm')
+        avatar = request.files.get('avatar')
+
+        if password != confirm:
+            err_msg = 'Mật khẩu không khớp!'
+        else:
+            try:
+                from WebsiteTimViecLam.HeThongTimViecLam import dao
+                dao.add_user(name=name, username=username, email=email,
+                             password=password, avatar=avatar)
+                return redirect('/login')
+            except Exception as ex:
+                err_msg = f'Đăng ký thất bại: {str(ex)}'
+
+    return render_template('register.html', err_msg=err_msg)
+
+
 if __name__=="__main__":
     with app.app_context():
         app.run(debug=True, port=5000)

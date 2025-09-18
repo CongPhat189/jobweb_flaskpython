@@ -7,8 +7,8 @@ import cloudinary.uploader
 from datetime import datetime
 
 def auth_user(username,password,role=None):
-    # mat_khau = str(hashlib.md5(password.encode('utf-8')).hexdigest())
-    mat_khau=password
+    mat_khau = str(hashlib.md5(password.encode('utf-8')).hexdigest())
+    # mat_khau=password
     print(username)
     print(mat_khau)
     print(TaiKhoan.mat_khau)
@@ -17,19 +17,34 @@ def auth_user(username,password,role=None):
 def get_user_by_ID(id):
     return TaiKhoan.query.get(id)
 
-def add_user(name,username,password,avatar=None):
-    password=str(hashlib.md5(password.encode('utf-8')).hexdigest())
-    tk=TaiKhoan(username=username,mat_khau=password)
+def get_applied_jobs(ma_uv):
+    print(ma_uv)
+    return (db.session.query(TinTuyenDung)
+            .join(UngTuyen, TinTuyenDung.id == UngTuyen.ma_ttd)
+            .filter(UngTuyen.ma_uv == ma_uv)
+            .all())
 
+def add_user(name, username, email, password, avatar=None):
+    mat_khau = str(hashlib.md5(password.encode('utf-8')).hexdigest())
+
+    # Upload avatar nếu có
+    avatar_url = None
     if avatar:
         res = cloudinary.uploader.upload(avatar)
-        tk.avatar=res.get('secure_url')
-    db.session.add(tk)
-    db.session.commit()
-    id=tk.id
-    u = UngVien(id=id, name=name)
+        avatar_url = res.get('secure_url')
+
+    # Tạo đối tượng ứng viên
+    u = UngVien(
+        username=username,
+        email=email,
+        mat_khau=mat_khau,
+        ten_uv=name,
+        anh_dai_dien=avatar_url
+    )
+
     db.session.add(u)
     db.session.commit()
+    return u
 
 def loadTinTuyenDung(id=None,page=1):
     query=TinTuyenDung.query
@@ -147,7 +162,7 @@ def ungTuyen(ma_ttd, file=None):
         # Tạo bản ghi ứng tuyển
         ung_tuyen = UngTuyen(
             # ma_uv=current_user.id, dùng dòng này sau khi có login
-            ma_uv=1,
+            ma_uv=current_user.id,
             ma_ttd=ma_ttd,
             link_cv=cv_url,
             ngay_ung_tuyen=datetime.now()

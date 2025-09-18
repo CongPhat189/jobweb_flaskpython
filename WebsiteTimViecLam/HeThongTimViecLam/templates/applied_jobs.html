@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách việc làm đã ứng tuyển</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.05), #fff);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+            font-size: 2rem;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .job-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(66, 133, 244, 0.15);
+        }
+
+        .job-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4285f4;
+            margin-bottom: 0.5rem;
+        }
+
+        .company-name {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .job-detail {
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .job-detail span {
+            margin-left: 0.5rem;
+        }
+
+        .salary {
+            color: #34a853;
+            font-weight: 600;
+        }
+
+        .apply-date {
+            color: #ea4335;
+            font-weight: 500;
+        }
+
+        .no-jobs {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .no-jobs-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Danh sách việc làm đã ứng tuyển</h2>
+
+    {% if jobs %}
+    <div class="jobs-grid">
+        {% for job in jobs %}
+        <div class="job-card">
+            <div class="job-title">
+                <a href="#">{{ job.ten_ttd }}</a> - {{ job.ten_cong_viec }}
+            </div>
+            <div class="company-name">{{ job.nha_tuyen_dung.ten_ntd }}</div>
+
+            <div class="job-detail">📍 <span>{{ job.dia_chi_lam_viec }}</span></div>
+            <div class="job-detail">💰 <span class="salary">{{ job.muc_luong.ten_muc_luong }}</span></div>
+
+            {% set ut = job.ungtuyen[0] if job.ungtuyen else None %}
+            <div class="job-detail">📅
+                <span class="apply-date">{{ ut.ngay_ung_tuyen.strftime("%d-%m-%Y") if ut else "" }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-jobs">
+        <div class="no-jobs-icon">📋</div>
+        <h3>Bạn chưa ứng tuyển công việc nào</h3>
+        <p>Hãy tìm việc và ứng tuyển ngay hôm nay!</p>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>

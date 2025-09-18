@@ -27,6 +27,64 @@
             z-index: 100;
         }
 
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8f9ff;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .user-info .avatar {
+            border-radius: 50%;
+            border: 2px solid #4285f4;
+            object-fit: cover;
+        }
+
+        .user-info .username {
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .btn {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-outline {
+            border: 1px solid #4285f4;
+            color: #4285f4;
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: #4285f4;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ea4335;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background: #c62828;
+        }
+
+
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -366,10 +424,21 @@
                     <li><a href="#">Blog</a></li>
                 </ul>
             </nav>
-            <div class="auth-buttons">
-                <a href="#" class="btn btn-outline">Đăng nhập</a>
-                <a href="#" class="btn btn-primary">Đăng ký</a>
-            </div>
+            {% if current_user.is_authenticated %}
+               <div class="auth-buttons">
+                    <div class="user-info">
+                        <span class="username">Chào <strong>{{ current_user.username }}</strong></span>
+                    </div>
+                    <a href="/ungvien/applied_jobs" class="btn btn-outline">📄 Việc đã ứng tuyển</a>
+                    <a href="/logout" class="btn btn-danger">Đăng xuất</a>
+                </div>
+            {% else %}
+                 <div class="auth-buttons">
+                    <a href="/login" class="btn btn-outline">Đăng nhập</a>
+                    <a href="/register" class="btn btn-primary">Đăng ký</a>
+                </div>
+            {% endif %}
+
         </div>
     </header>
 
