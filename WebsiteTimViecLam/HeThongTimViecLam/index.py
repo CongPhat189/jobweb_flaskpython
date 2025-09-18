@@ -60,21 +60,67 @@ def apply(ma_ttd):
 
     return redirect(url_for('index'))  # quay lại trang chính
 
-@app.route("/login", methods=['get','post'])
-@annonymous_user
+from flask import request, redirect, render_template, url_for
+from flask_login import login_user
+from WebsiteTimViecLam.HeThongTimViecLam import dao, app
 
+
+@app.route("/login", methods=["GET", "POST"])
+@annonymous_user
 def login_process():
-    if request.method.__eq__('POST'):
-        username=request.form.get('username')
-        password=request.form.get('password')
-        u=dao.auth_user(username=username, password=password)
+    err_msg = None
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        role = request.form.get("role")  # lấy role từ form nếu có (admin/ungvien/nhatuyendung)
+
+        # Gọi DAO để kiểm tra user
+        u = dao.auth_user(username=username, password=password, role=role)
         if u:
             login_user(u)
 
+            # Sau khi login, điều hướng về trang được yêu cầu hoặc trang chủ
+            next_url = request.args.get("next")
+            return redirect(next_url if next_url else "/")
+        else:
+            err_msg = "Sai tên đăng nhập, mật khẩu hoặc quyền truy cập!"
 
-            next = request.args.get('next')
-            return redirect(next if next else '/')
-    return render_template('login.html')
+    return render_template("login.html", err_msg=err_msg)
+
+
+@app.route("/register", methods=["GET", "POST"])
+@annonymous_user
+def register_process():
+    err_msg = None
+    if request.method == "POST":
+        name = request.form.get("name")
+        username = request.form.get("username")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        confirm = request.form.get("confirm")
+        role = request.form.get("role") or "UNGVIEN"  # mặc định ứng viên nếu không chọn
+        avatar = request.files.get("avatar")
+
+        if not all([name, username, email, password, confirm]):
+            err_msg = "Vui lòng nhập đầy đủ thông tin!"
+        elif password != confirm:
+            err_msg = "Mật khẩu xác nhận không khớp!"
+        else:
+            try:
+                dao.add_user(
+                    name=name,
+                    username=username,
+                    email=email,
+                    password=password,
+                    role=role,
+                    avatar=avatar,
+                )
+                return redirect(url_for("login_process"))
+            except Exception as ex:
+                err_msg = f"Đăng ký thất bại: {str(ex)}"
+
+    return render_template("register.html", err_msg=err_msg)
+
 
 @app.route("/ungvien/applied_jobs")
 @login_required
@@ -90,30 +136,7 @@ def logout_process():
     logout_user()
     return redirect('/login')
 
-@app.route("/register", methods=['GET', 'POST'])
-@annonymous_user
-def register_process():
-    err_msg = None
-    if request.method == 'POST':
-        name = request.form.get('name')
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm = request.form.get('confirm')
-        avatar = request.files.get('avatar')
 
-        if password != confirm:
-            err_msg = 'Mật khẩu không khớp!'
-        else:
-            try:
-                from WebsiteTimViecLam.HeThongTimViecLam import dao
-                dao.add_user(name=name, username=username, email=email,
-                             password=password, avatar=avatar)
-                return redirect('/login')
-            except Exception as ex:
-                err_msg = f'Đăng ký thất bại: {str(ex)}'
-
-    return render_template('register.html', err_msg=err_msg)
 
 
 if __name__=="__main__":
