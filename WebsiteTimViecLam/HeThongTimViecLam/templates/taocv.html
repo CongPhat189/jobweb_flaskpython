@@ -23,7 +23,7 @@
 
 <nav class="navbar navbar-expand-lg">
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center" href="#"><img src="" alt="logo" style="width:38px;height:34px;margin-right:8px"> <strong style="color:#2563eb">JobConnect</strong></a>
+    <a class="navbar-brand d-flex align-items-center" href="#"><strong style="color:#2563eb">JobConnect</strong></a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -33,12 +33,16 @@
         <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Việc làm</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Công ty</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Tạo CV</a></li>
+        <li class="nav-item"><a class="nav-link" href="/taocv">Tạo CV</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Blog</a></li>
       </ul>
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-primary">Đăng nhập</button>
-        <button class="btn btn-primary">Đăng ký</button>
+        {% if current_user.is_authenticated %}
+          <a href="/logout" class="btn btn-danger">Đăng xuất</a>
+        {% else %}
+          <a href="/login" class="btn btn-outline-primary">Đăng nhập</a>
+          <a href="/register" class="btn btn-primary">Đăng ký</a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -47,83 +51,81 @@
 <section class="hero">
   <div class="container">
     <div class="text-center mb-5">
-      <h2>Tạo CV Chuyên Nghiệp</h2>
-      <p class="text-muted">Xây dựng hồ sơ cá nhân ấn tượng và tăng cơ hội được tuyển dụng</p>
+      <h2>Tạo Hồ Sơ Xin Việc</h2>
+      <p class="text-muted">Điền đầy đủ thông tin bên dưới để tăng cơ hội ứng tuyển thành công</p>
     </div>
 
     <div class="row g-4 justify-content-center align-items-start">
       <div class="col-lg-7">
         <div class="card card-ghost p-4">
           <div class="cv-preview">
-            <!-- Thay ảnh preview thực tế nếu cần -->
-            <img src="/static/img/cv-sample.png" alt="Mẫu CV" style="max-height:220px;max-width:100%;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(2,6,23,0.06))">
+            <img src="/static/img/cv-sample.png" alt="Mẫu CV" style="max-height:220px;max-width:100%;object-fit:contain;">
           </div>
           <div class="cv-caption">Mẫu CV Chuyên Nghiệp<br><small class="text-muted">Thiết kế hiện đại, dễ đọc</small></div>
         </div>
       </div>
 
-      <div class="col-lg-4">
+      <div class="col-lg-5">
         <div class="card card-ghost form-card">
-          <h6 class="mb-3">Thông Tin Cá Nhân</h6>
+          <h6 class="mb-3">Thông Tin Hồ Sơ</h6>
 
           <form id="cvForm" action="/taocv" method="POST" enctype="multipart/form-data">
             <div class="mb-2">
-              <label class="form-label small">Họ và tên</label>
-              <input class="form-control" name="ten_hs" placeholder="Nguyễn Văn A" required>
+              <label class="form-label small">Tên hồ sơ</label>
+              <input class="form-control" name="ten_hs" placeholder="CV Frontend Developer" required>
             </div>
+
             <div class="mb-2">
-              <label class="form-label small">Email</label>
-              <input type="email" class="form-control" name="email" placeholder="nguyen@example.com" required>
+              <label class="form-label small">Mục tiêu nghề nghiệp</label>
+              <textarea class="form-control" name="muc_tieu_nghe_nghiep" rows="2" placeholder="Ví dụ: Phát triển kỹ năng lập trình..."></textarea>
             </div>
-            <div class="row g-2">
-              <div class="col-6 mb-2">
-                <label class="form-label small">SĐT</label>
-                <input class="form-control" name="sdt" placeholder="0912345678">
-              </div>
-              <div class="col-6 mb-2">
-                <label class="form-label small">Địa chỉ</label>
-                <input class="form-control" name="diachi" placeholder="Hồ Chí Minh">
-              </div>
+
+            <div class="mb-2">
+              <label class="form-label small">Kinh nghiệm</label>
+              <textarea class="form-control" name="kinh_nghiem" rows="2" placeholder="Ví dụ: 2 năm làm việc tại công ty X..."></textarea>
             </div>
-            <div class="mb-3">
-              <label class="form-label small">Vị trí mong muốn</label>
-              <input class="form-control" name="vitri" placeholder="Frontend Developer">
+
+            <div class="mb-2">
+              <label class="form-label small">Kỹ năng</label>
+              <textarea class="form-control" name="ky_nang" rows="2" placeholder="Ví dụ: React, Django, SQL..."></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small">Học vấn</label>
+              <textarea class="form-control" name="hoc_van" rows="2" placeholder="Ví dụ: Cử nhân CNTT - ĐH Khoa học Tự nhiên..."></textarea>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small">Tiến Trình Hoàn Thành <span id="progressLabel" class="float-end">75%</span></label>
+              <label class="form-label small">Tải File CV (PDF)</label>
+              <input type="file" class="form-control" name="file_cv" accept="application/pdf">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small">Tiến trình hoàn thành <span id="progressLabel" class="float-end">0%</span></label>
               <div class="progress progress-small mb-2">
-                <div id="progressBar" class="progress-bar" role="progressbar" style="width:75%"></div>
+                <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
               </div>
             </div>
 
             <div class="d-grid gap-2">
-              <label class="btn btn-upload btn-block" for="fileInput">📤 Tải CV Lên</label>
-              <input type="file" id="fileInput" name="file_cv" accept="application/pdf" style="display:none">
-              <button type="submit" class="btn btn-create">➕ Tạo CV Mới</button>
+              <button type="submit" class="btn btn-create">➕ Lưu Hồ Sơ</button>
             </div>
           </form>
         </div>
       </div>
     </div>
 
-    <div class="text-center mt-5">
-      <h5>Kết Nối Với Nhà Tuyển Dụng</h5>
-      <p class="text-muted">Khám phá cơ hội nghề nghiệp tại các công ty hàng đầu</p>
-    </div>
   </div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // JS nhỏ để cập nhật tiến trình khi chọn file
-  const fileInput = document.getElementById('fileInput');
+  const fileInput = document.querySelector('input[name="file_cv"]');
   const progressBar = document.getElementById('progressBar');
   const progressLabel = document.getElementById('progressLabel');
 
   fileInput.addEventListener('change', ()=>{
     if(!fileInput.files || fileInput.files.length===0) return;
-    // Giả lập upload: đặt progress = 100
     progressBar.style.width = '100%';
     progressLabel.textContent = '100%';
   });

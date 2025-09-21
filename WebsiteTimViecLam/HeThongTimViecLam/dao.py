@@ -46,8 +46,14 @@ def add_user(name, username, email, password, avatar=None):
     db.session.commit()
     return u
 
-def loadTinTuyenDung(id=None,page=1):
+def loadTinTuyenDung(id=None,page=1,ten_ntd=None):
     query=TinTuyenDung.query
+
+    if ten_ntd:
+        query = query.join(NhaTuyenDung).filter(NhaTuyenDung.ten_ntd.ilike(f"%{ten_ntd}%"))
+
+    if id:
+        return query.get(id)
 
     page_size=app.config["PAGE_SIZE"]
     start = (page - 1) * page_size
@@ -178,4 +184,22 @@ def ungTuyen(ma_ttd, file=None):
         db.session.rollback()
         print(f"Lỗi khi ứng tuyển: {ex}")
         return None
+
+def get_hoso_by_current_user():
+    if not current_user.is_authenticated:
+        return None  # Chưa login thì không có hồ sơ
+
+    if current_user.loai_tai_khoan != "ungvien":
+        return None  # Chỉ ứng viên mới có hồ sơ
+
+    return HoSoXinViec.query.filter_by(ma_uv=current_user.id).all()
+
+def get_cap_bac():
+    return CapBac.query.all()
+
+def get_chuyen_nganh():
+    return ChuyenNganh.query.all()
+
+def get_loai_cong_viec():
+    return  LoaiCongViec.query.all()
 

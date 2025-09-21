@@ -422,12 +422,15 @@
                     <li><a href="#">Công ty</a></li>
                     <li><a href="/taocv">Tạo CV</a></li>
                     <li><a href="#">Blog</a></li>
+                    <li><a href="/hoso">Hồ sơ</a></li>
                 </ul>
             </nav>
             {% if current_user.is_authenticated %}
                <div class="auth-buttons">
                     <div class="user-info">
-                        <span class="username">Chào <strong>{{ current_user.username }}</strong></span>
+                        <a href="/mycv">
+                            <span class="username">Chào <strong>{{ current_user.username }}</strong></span>
+                        </a>
                     </div>
                     <a href="/ungvien/applied_jobs" class="btn btn-outline">📄 Việc đã ứng tuyển</a>
                     <a href="/logout" class="btn btn-danger">Đăng xuất</a>
@@ -444,18 +447,19 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-container">
-            <h1>Tìm Việc Làm<br><span style="color: #ffd700;">Mơ Ước Của Bạn</span></h1>
-            <p>Kết nối với hàng ngàn cơ hội việc làm từ các công ty hàng đầu.<br>Tìm CV chuyên nghiệp và nâng tầm nghề ngày hôm nay</p>
+    <div class="hero-container">
+        <h1>Tìm Việc Làm<br><span style="color: #ffd700;">Mơ Ước Của Bạn</span></h1>
+        <p>Kết nối với hàng ngàn cơ hội việc làm từ các công ty hàng đầu.<br>Tìm CV chuyên nghiệp và nâng tầm nghề ngày hôm nay</p>
 
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="🔍 Vị trí, công ty">
-                <input type="text" class="search-input" placeholder="📍 Địa điểm">
-                <input type="text" class="search-input" placeholder="💰 Mức lương">
-                <button class="search-btn">Tìm kiếm Việc Làm</button>
-            </div>
-        </div>
-    </section>
+        <form method="get" action="{{ url_for('index') }}" class="search-container">
+            <input type="text" class="search-input" name="ten_ntd"
+                   placeholder="🔍 Tên nhà tuyển dụng"
+                   value="{{ request.args.get('ten_ntd','') }}">
+            <button type="submit" class="search-btn">Tìm kiếm Việc Làm</button>
+        </form>
+    </div>
+</section>
+
 
     <!-- Jobs Section -->
     <section class="jobs-section">
