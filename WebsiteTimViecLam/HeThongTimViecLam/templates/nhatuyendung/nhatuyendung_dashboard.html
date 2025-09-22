@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Nhà tuyển dụng Dashboard - JobConnect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CKEditor 5 Classic -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+    <style>
+        body { background: #f8f9fa; }
+        .dashboard-container { max-width: 1400px; margin: 0 auto; }
+        .sidebar {
+            min-height: 100vh;
+            background: #fff;
+            border-right: 1px solid #dee2e6;
+            padding: 20px 0;
+        }
+        .sidebar .nav-link { color: #333; font-weight: 500; border-radius: 8px; margin: 5px 10px; }
+        .sidebar .nav-link.active { background: #0d6efd; color: #fff; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .stats-box { text-align: center; padding: 20px; background: #fff; border-radius: 12px; }
+        .stats-number { font-size: 28px; font-weight: bold; color: #0d6efd; }
+        .ck-editor__editable[role="textbox"] { min-height: 150px; }
+    </style>
+</head>
+<body>
+<div class="container-fluid dashboard-container">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <h4 class="px-3 mb-4">📊 Dashboard</h4>
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="#" onclick="showSection('thongke', this)">Thống kê</a>
+                <a class="nav-link" href="#" onclick="showSection('dangtin', this)">Đăng tin tuyển dụng</a>
+                <a class="nav-link" href="#" onclick="showSection('quanlytin', this)">Quản lý tin</a>
+            </nav>
+        </div>
+
+        <!-- Content -->
+        <div class="col-md-9 col-lg-10 p-4">
+
+            <!-- Thống kê -->
+            <div id="thongke" class="content-section active">
+                <h3 class="mb-4">📈 Thống kê</h3>
+                <div class="row">
+                    <div class="col-md-4"><div class="stats-box"><div class="stats-number">{{ tong_tin or 0 }}</div><div>Tin đã đăng</div></div></div>
+                    <div class="col-md-4"><div class="stats-box"><div class="stats-number">{{ tong_ung_vien or 0 }}</div><div>Lượt ứng tuyển</div></div></div>
+                    <div class="col-md-4"><div class="stats-box"><div class="stats-number">{{ tin_dang_hoat_dong or 0 }}</div><div>Tin đang hoạt động</div></div></div>
+                </div>
+            </div>
+
+            <!-- Đăng tin -->
+            <div id="dangtin" class="content-section">
+                <h3 class="mb-4">📝 Đăng tin tuyển dụng mới</h3>
+                <form method="POST" action="{{ url_for('dang_tin_tuyen_dung') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên công việc</label>
+                            <input type="text" name="ten_cong_viec" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Địa chỉ làm việc</label>
+                            <input type="text" name="dia_chi_lam_viec" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Số lượng tuyển</label>
+                            <input type="number" name="so_luong" class="form-control" min="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giới tính yêu cầu</label>
+                            <select name="gioi_tinh_yc" class="form-select" required>
+                                <option value="">-- Chọn giới tính --</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Không yêu cầu">Không yêu cầu</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngành nghề</label>
+                            <select name="ma_cn" class="form-select" required>
+                                <option value="">-- Chọn ngành nghề --</option>
+                                {% for cn in chuyen_nganhs %}
+                                    <option value="{{ cn.id }}">{{ cn.ten_cn }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Loại công việc</label>
+                            <select name="ma_loai_cv" class="form-select" required>
+                                <option value="">-- Chọn loại công việc --</option>
+                                {% for loai in loai_congviecs %}
+                                    <option value="{{ loai.id }}">{{ loai.ten_loai_cv }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Cấp bậc</label>
+                            <select name="ma_cap_bac" class="form-select" required>
+                                <option value="">-- Chọn cấp bậc --</option>
+                                {% for cb in cap_bacs %}
+                                    <option value="{{ cb.id }}">{{ cb.ten_cap_bac }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mức lương</label>
+                            <select name="ma_muc_luong" class="form-select" required>
+                                <option value="">-- Chọn mức lương --</option>
+                                {% for ml in muc_luongs %}
+                                    <option value="{{ ml.id }}">{{ ml.ten_muc_luong }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả công việc</label>
+                        <textarea name="mo_ta" id="mo_ta"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Yêu cầu</label>
+                        <textarea name="yeu_cau" id="yeu_cau"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quyền lợi</label>
+                        <textarea name="quyen_loi" id="quyen_loi"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hạn nộp</label>
+                        <input type="date" name="han_nop" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Đăng tin</button>
+                </form>
+            </div>
+
+            <!-- Quản lý tin -->
+            <div id="quanlytin" class="content-section">
+                <h3 class="mb-4">📋 Quản lý tin tuyển dụng</h3>
+                {% if danh_sach_tin %}
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên công việc</th>
+                            <th>Ngày đăng</th>
+                            <th>Trạng thái</th>
+                            <th>Ứng viên</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for tin in danh_sach_tin %}
+                    <tr>
+                        <td>{{ tin.ten_cong_viec }}</td>
+                        <td>{{ tin.ngay_dang.strftime("%d/%m/%Y") }}</td>
+                        <td>
+                            {% if tin.trang_thai %}
+                                <span class="badge bg-success">Hoạt động</span>
+                            {% else %}
+                                <span class="badge bg-danger">Đã đóng</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ tin.ung_tuyen|length }}</td>
+                        <td>
+                            <!-- Xóa tin -->
+                            <form method="POST" action="{{ url_for('xoa_tin_tuyen_dung', ma_ttd=tin.id) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xoá tin này?')">Xoá</button>
+                            </form>
+                            <!-- Xem ứng viên -->
+                            <button type="button" class="btn btn-sm btn-info" onclick="xemUngVien({{ tin.id }})">Ứng viên</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted">Chưa có tin tuyển dụng nào.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem Ứng viên -->
+<div class="modal fade" id="ungVienModal" tabindex="-1" aria-labelledby="ungVienModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ungVienModalLabel">Danh sách ứng viên</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <div id="ungVienContent">
+          <p class="text-muted">Chưa có dữ liệu...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showSection(id, el) {
+        document.querySelectorAll(".content-section").forEach(e => e.classList.remove("active"));
+        document.querySelectorAll(".sidebar .nav-link").forEach(e => e.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        el.classList.add("active");
+    }
+
+    // CKEditor
+    ClassicEditor.create(document.querySelector('#mo_ta')).catch(e=>console.error(e));
+    ClassicEditor.create(document.querySelector('#yeu_cau')).catch(e=>console.error(e));
+    ClassicEditor.create(document.querySelector('#quyen_loi')).catch(e=>console.error(e));
+
+    // Xem ứng viên (AJAX)
+    function xemUngVien(ma_ttd) {
+        const modal = new bootstrap.Modal(document.getElementById("ungVienModal"));
+        modal.show();
+
+        document.getElementById("ungVienContent").innerHTML = `<p class="text-muted">Đang tải dữ liệu...</p>`;
+
+        fetch(`/nhatuyendung/${ma_ttd}/ungvien`)
+            .then(res => res.json())
+            .then(data => {
+                let html = "";
+                if (data.length === 0) {
+                    html = `<p class="text-muted">Chưa có ứng viên nào ứng tuyển.</p>`;
+                } else {
+                    html = `
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>CV</th>
+                                <th>Ngày ứng tuyển</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    data.forEach(uv => {
+                        html += `
+                        <tr>
+                            <td>${uv.ten_uv}</td>
+                            <td>${uv.email}</td>
+                            <td>${uv.link_cv ? `<a href="${uv.link_cv}" target="_blank" class="btn btn-sm btn-outline-primary">Xem CV</a>` : "Chưa nộp"}</td>
+                            <td>${uv.ngay_ung_tuyen}</td>
+                            <td><span class="badge ${uv.trang_thai === "Phê duyệt" ? "bg-success" : (uv.trang_thai === "Từ chối" ? "bg-danger" : "bg-secondary")}">${uv.trang_thai}</span></td>
+                            <td>
+                                ${uv.trang_thai === "Đang chờ" ? `
+                                <form method="POST" action="/nhatuyendung/pheduyet/${uv.id}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-success">Phê duyệt</button>
+                                </form>
+                                <form method="POST" action="/nhatuyendung/tuchoi/${uv.id}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger">Từ chối</button>
+                                </form>` : `<span class="text-muted">Đã xử lý</span>`}
+                            </td>
+                        </tr>`;
+                    });
+                    html += "</tbody></table>";
+                }
+                document.getElementById("ungVienContent").innerHTML = html;
+            })
+            .catch(err => {
+                document.getElementById("ungVienContent").innerHTML = `<p class="text-danger">Lỗi tải ứng viên!</p>`;
+                console.error(err);
+            });
+    }
+</script>
+</body>
+</html>

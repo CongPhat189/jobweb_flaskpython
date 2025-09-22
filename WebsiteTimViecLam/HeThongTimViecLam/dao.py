@@ -205,3 +205,63 @@ def ungTuyen(ma_ttd, file=None):
         db.session.rollback()
         print(f"Lỗi khi ứng tuyển: {ex}")
         return None
+
+# chucnangcuanhatuyendung
+
+
+def add_job_post(ma_ntd, ten_cong_viec, dia_chi, so_luong, gioi_tinh_yc,
+                 ma_cn, ma_loai_cv, ma_cap_bac, ma_muc_luong,
+                 mo_ta, yeu_cau, ky_nang, quyen_loi, han_nop):
+    try:
+        job = TinTuyenDung(
+            ma_ntd=ma_ntd,
+            ten_cong_viec=ten_cong_viec,
+            dia_chi_lam_viec=dia_chi,
+            so_luong=so_luong,
+            gioi_tinh_yc=gioi_tinh_yc,
+            ma_cn=ma_cn,
+            ma_loai_cv=ma_loai_cv,
+            ma_cap_bac=ma_cap_bac,
+            ma_muc_luong=ma_muc_luong,
+            mo_ta=mo_ta,
+            yeu_cau=yeu_cau,
+            ky_nang_lien_quan=ky_nang,
+            quyen_loi=quyen_loi,
+            ngay_dang=datetime.now(),
+            han_nop=han_nop,
+            trang_thai=True
+        )
+        db.session.add(job)
+        db.session.commit()
+        return job
+    except Exception as e:
+        db.session.rollback()
+        print(f"Lỗi khi đăng tin: {e}")
+        return None
+
+def delete_job_post(ma_ttd, ma_ntd):
+    try:
+        tin = TinTuyenDung.query.filter_by(id=ma_ttd, ma_ntd=ma_ntd).first()
+        if tin:
+            db.session.delete(tin)
+            db.session.commit()
+            return True
+        return False
+    except Exception as e:
+        db.session.rollback()
+        print(f"Lỗi xóa tin: {e}")
+        return False
+
+def cap_nhat_trang_thai_ung_tuyen(ma_ung_tuyen, trang_thai):
+    try:
+        ut = UngTuyen.query.get(ma_ung_tuyen)
+        if not ut:
+            return None
+
+        ut.trang_thai = trang_thai  # "Phê duyệt" hoặc "Từ chối"
+        db.session.commit()
+        return ut
+    except Exception as ex:
+        db.session.rollback()
+        print("Lỗi cập nhật trạng thái:", ex)
+        return None
