@@ -31,7 +31,8 @@
         .form-control:focus { box-shadow: none; border-color: #86b7fe; }
         .btn-primary { border-radius: 10px; padding: 10px 16px; }
         @media (max-width: 767px) {
-            .auth-card { margin: 20px; }
+            .auth-card { margin: 20px; flex-direction: column; }
+            .left-side, .right-side { border: none !important; }
         }
     </style>
 </head>
@@ -55,7 +56,7 @@
 
             <div class="mt-4 small-muted">
                 <strong>Chưa có tài khoản?</strong>
-                <a href="">Đăng ký ngay</a>
+                <a href="{{ url_for('register_process') }}">Đăng ký ngay</a>
             </div>
         </div>
 
@@ -63,17 +64,10 @@
         <div class="right-side flex-fill border-start">
             <h4 class="mb-3">Đăng nhập</h4>
 
-            <!-- Flash messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+            <!-- Hiển thị lỗi -->
+            {% if err_msg %}
+                <div class="alert alert-danger">{{ err_msg }}</div>
+            {% endif %}
 
             <form method="POST" action="{{ url_for('login_process') }}">
                 <div class="mb-3">
@@ -86,6 +80,15 @@
                     <label for="password" class="form-label">Mật khẩu</label>
                     <input id="password" name="password" type="password" required class="form-control"
                            placeholder="Mật khẩu của bạn">
+                </div>
+
+                <div class="mb-3">
+                    <label for="role" class="form-label">Loại tài khoản</label>
+                    <select id="role" name="role" class="form-select" required>
+                        <option value="UNGVIEN" {% if request.form.role == UNGVIEN %}selected{% endif %}>Ứng viên</option>
+                        <option value="NHATUYENDUNG" {% if request.form.role == NHATUYENDUNG %}selected{% endif %}>Nhà tuyển dụng</option>
+                        <option value="ADMIN" {% if request.form.role == ADMIN %}selected{% endif %}>Quản trị viên</option>
+                    </select>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -101,7 +104,7 @@
             </form>
 
             <div class="mt-4 small text-muted">
-                <p>Không có tài khoản? <a href="/register">Đăng ký</a></p>
+                <p>Không có tài khoản? <a href="{{ url_for('register_process') }}">Đăng ký</a></p>
             </div>
         </div>
     </div>

@@ -5,9 +5,7 @@
     <title>Ứng tuyển công việc</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
+        body { background-color: #f8f9fa; }
         .job-card {
             border-radius: 12px;
             background: #fff;
@@ -20,9 +18,7 @@
             padding: 24px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
-        .apply-form h4 {
-            margin-bottom: 20px;
-        }
+        .apply-form h4 { margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -31,29 +27,32 @@
         <!-- Cột trái: Mô tả công việc -->
         <div class="col-lg-8">
             <div class="job-card shadow-sm">
-                <h3 class="mb-3">Business Analyst</h3>
-                <h6 class="text-muted">Deloitte Vietnam • Hà Nội • 22 - 32 triệu VND • Full-time</h6>
-                <span class="badge bg-primary">Excel</span>
-                <span class="badge bg-info text-dark">PowerBI</span>
-                <span class="badge bg-secondary">Consulting</span>
-                <span class="badge bg-warning text-dark">Hot Job</span>
+                <h3 class="mb-3">{{ tin.ten_cong_viec }}</h3>
+                <h6 class="text-muted">
+                    {{ tin.nha_tuyen_dung.ten_ntd }} • {{ tin.dia_chi_lam_viec }}
+                    • {{ tin.muc_luong.ten_muc_luong if tin.muc_luong else "Thoả thuận" }}
+                    • {{ tin.loai_cv.ten_loai_cv if tin.loai_cv else "Không xác định" }}
+                </h6>
+
+                <!-- Tag nhỏ -->
+                <span class="badge bg-primary">Vị trí: {{tin.cap_bac.ten_cap_bac if tin.cap_bac else "Cấp bậc" }}</span>
+                <span class="badge bg-info text-dark"> Số lượng: {{ tin.so_luong or "Số lượng: ?" }}</span>
+                <span class="badge bg-secondary">Giới tính: {{ tin.gioi_tinh_yc or "Không yêu cầu giới tính" }}</span>
 
                 <hr>
 
-                <h5 class="mt-4">Mô Tả Công Việc</h5>
-                <ul>
-                    <li>Phân tích và đánh giá các quy trình kinh doanh hiện tại của khách hàng</li>
-                    <li>Thu thập, phân tích dữ liệu và báo cáo chi tiết</li>
-                    <li>Xây dựng mô hình tài chính và dự báo kinh doanh</li>
-                    <li>Hỗ trợ khách hàng trong việc triển khai các giải pháp được đề xuất</li>
-                    <li>Tham gia các cuộc họp với khách hàng và trình bày kết quả phân tích</li>
-                </ul>
+                <h5 class="mt-4">📌 Mô Tả Công Việc</h5>
+                <div>{{ tin.mo_ta|safe }}</div>
 
-                <h5 class="mt-4">Yêu Cầu Công Việc</h5>
-                <ul>
-                    <li>Tốt nghiệp Đại học chuyên ngành Kinh tế, Quản trị kinh doanh hoặc tương đương</li>
-                    <li>Kinh nghiệm làm việc tại công ty tư vấn Big4 là một lợi thế</li>
-                </ul>
+                <h5 class="mt-4">📋 Yêu Cầu Công Việc</h5>
+                <div>{{ tin.yeu_cau|safe }}</div>
+
+                <h5 class="mt-4">🎁 Quyền Lợi</h5>
+                <div>{{ tin.quyen_loi|safe }}</div>
+
+                <p class="mt-4 text-danger fw-bold">
+                    Hạn nộp hồ sơ: {{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else "Không có" }}
+                </p>
             </div>
         </div>
 
@@ -80,7 +79,7 @@
                         <input type="file" class="form-control" id="file" name="file" accept=".pdf" required>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 mb-2">🚀 Gửi CV</button>
-                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100">Quay lại</a>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary w-100">⬅ Quay lại</a>
                 </form>
             </div>
         </div>

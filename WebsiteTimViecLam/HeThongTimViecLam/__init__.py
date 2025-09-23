@@ -14,6 +14,9 @@ app.config['PAGE_SIZE']=4
 
 db=SQLAlchemy(app=app)
 Login=LoginManager(app=app)
+Login.login_view = "login_process"
+Login.login_message = u"⚠️ Bạn cần đăng nhập để tiếp tục."
+Login.login_message_category = "warning"  # có thể là success, danger, info, warning
 
 
 cloudinary.config(

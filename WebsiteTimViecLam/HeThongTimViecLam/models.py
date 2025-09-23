@@ -1,7 +1,7 @@
 from flask_login import UserMixin
 
 from WebsiteTimViecLam.HeThongTimViecLam import  db,app
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, Date, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, Date, DateTime, Enum
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime
 
@@ -112,6 +112,7 @@ class HoSoXinViec(db.Model):
     cap_bac = relationship("CapBac", backref="ho_so")
 
 
+
 class TinTuyenDung(db.Model):
     __tablename__ = "tbl_tintuyendung"
     id = Column("MaTTD", Integer, primary_key=True, autoincrement=True)
@@ -124,10 +125,13 @@ class TinTuyenDung(db.Model):
     dia_chi_lam_viec = Column("DiaChiLamViec", String(200))
     so_luong = Column("SoLuong", Integer)
     gioi_tinh_yc = Column("GioiTinhYC", String(50))
-    mo_ta = Column("MoTaCongViec", String(500))
-    yeu_cau = Column("YeuCauCongViec", String(500))
-    ky_nang_lien_quan = Column("KyNangLienQuan", String(500))
-    quyen_loi = Column("QuyenLoi", String(500))
+
+    # đổi sang Text để lưu nội dung dài từ CKEditor
+    mo_ta = Column("MoTaCongViec", Text)
+    yeu_cau = Column("YeuCauCongViec", Text)
+    ky_nang_lien_quan = Column("KyNangLienQuan", Text)
+    quyen_loi = Column("QuyenLoi", Text)
+
     ngay_dang = Column("NgayDang", Date)
     han_nop = Column("HanNop", Date)
     trang_thai = Column("TrangThai", Boolean, default=True)
@@ -148,6 +152,14 @@ class UngTuyen(db.Model):
     ma_uv = Column("MaUngVien", Integer, ForeignKey("tbl_ungvien.MaUngVien"), nullable=False)
     link_cv = Column("LinkCV", String(200))
     ngay_ung_tuyen = Column("NgayUngTuyen", Date, default=datetime.now)
+
+    # Thêm cột trạng thái với Enum
+    trang_thai = Column(
+        "TrangThai",
+        Enum("Đang chờ", "Phê duyệt", "Từ chối", name="trangthai_enum"),
+        default="Đang chờ",
+        nullable=False
+    )
 
     # Quan hệ
     tin_tuyen_dung = relationship("TinTuyenDung", back_populates="ung_tuyen")
@@ -193,87 +205,3 @@ if __name__=='__main__':
         db.session.add_all(diachis + capbacs + mucluongs + chuyennganhs + loaicongviecs)
         db.session.commit()
 
-        # Seed tài khoản
-        uv1 = UngVien(
-            email="uv1@example.com",
-            username='a',
-            mat_khau="123456",
-            ten_uv="Nguyễn Văn A",
-            so_dien_thoai="0912345678",
-            ngay_sinh=datetime(1998, 5, 12),
-            dia_chi="Hà Nội",
-            so_thich="Đọc sách, du lịch"
-        )
-
-        uv2 = UngVien(
-            email="uv2@example.com",
-            username='b',
-            mat_khau="123456",
-            ten_uv="Trần Thị B",
-            so_dien_thoai="0987654321",
-            ngay_sinh=datetime(2000, 7, 20),
-            dia_chi="TP.HCM",
-            so_thich="Chạy bộ, nghe nhạc"
-        )
-
-        ntd1 = NhaTuyenDung(
-            email="ntd1@company.com",
-            username='c',
-            mat_khau="123456",
-            ten_ntd="Công ty TNHH ABC",
-            dia_chi="TP.HCM",
-            so_dien_thoai="0909123456"
-        )
-
-        db.session.add_all([uv1, uv2, ntd1])
-        db.session.commit()
-
-        # Seed hồ sơ xin việc
-        hs1 = HoSoXinViec(
-            ten_hs="CV Nguyễn Văn A",
-            ma_uv=uv1.id,
-            ma_cn=1,
-            ma_loai_cv=1,
-            ma_cap_bac=2,
-            muc_tieu_nghe_nghiep="Phát triển kỹ năng lập trình backend",
-            kinh_nghiem="2 năm làm Python Developer",
-            ky_nang="Python, Django, SQL",
-            hoc_van="Đại học CNTT",
-            giai_thuong="Giải Nhất Hackathon 2022"
-        )
-
-        db.session.add(hs1)
-        db.session.commit()
-
-        # Seed tin tuyển dụng
-        ttd1 = TinTuyenDung(
-            ma_ntd=ntd1.id,
-            ma_cn=1,
-            ma_loai_cv=1,
-            ma_muc_luong=2,
-            ma_cap_bac=2,
-            ten_cong_viec="Lập trình viên Python",
-            dia_chi_lam_viec="Quận 1, TP.HCM",
-            so_luong=2,
-            gioi_tinh_yc="Không yêu cầu",
-            mo_ta="Phát triển API cho hệ thống quản lý",
-            yeu_cau="Có kinh nghiệm với Django/Flask",
-            ky_nang_lien_quan="Python, REST API, SQL",
-            quyen_loi="Bảo hiểm, lương tháng 13",
-            ngay_dang=datetime.today(),
-            han_nop=datetime(2025, 12, 31),
-            trang_thai=True
-        )
-
-        db.session.add(ttd1)
-        db.session.commit()
-
-        # Seed ứng tuyển
-        ut1 = UngTuyen(
-            ma_ttd=ttd1.id,
-            ma_uv=uv1.id,
-            link_cv="http://example.com/cv_nguyenvana.pdf"
-        )
-
-        db.session.add(ut1)
-        db.session.commit()
