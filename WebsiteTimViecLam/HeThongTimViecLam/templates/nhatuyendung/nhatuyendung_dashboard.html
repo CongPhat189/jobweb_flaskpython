@@ -5,207 +5,460 @@
     <title>Nhà tuyển dụng Dashboard - JobConnect</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- CKEditor 5 Classic -->
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
     <style>
-        body { background: #f8f9fa; }
-        .dashboard-container { max-width: 1400px; margin: 0 auto; }
-        .sidebar {
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
-            background: #fff;
-            border-right: 1px solid #dee2e6;
-            padding: 20px 0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
         }
-        .sidebar .nav-link { color: #333; font-weight: 500; border-radius: 8px; margin: 5px 10px; }
-        .sidebar .nav-link.active { background: #0d6efd; color: #fff; }
-        .content-section { display: none; }
-        .content-section.active { display: block; }
-        .stats-box { text-align: center; padding: 20px; background: #fff; border-radius: 12px; }
-        .stats-number { font-size: 28px; font-weight: bold; color: #0d6efd; }
-        .ck-editor__editable[role="textbox"] { min-height: 150px; }
+
+        /* Header */
+        .top-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 20px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .company-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .company-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .greeting-text {
+            color: #333;
+            margin: 0;
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: #667eea;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .logout-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            color: white;
+        }
+
+        /* Container Layout */
+        .dashboard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px 0 0 15px;
+            padding: 30px 0;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-title {
+            color: #333;
+            font-weight: 700;
+            font-size: 22px;
+            margin-bottom: 25px;
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar .nav-link {
+            color: #666;
+            font-weight: 500;
+            border-radius: 15px;
+            margin: 8px 15px;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 15px 15px 0;
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 24px;
+        }
+
+        /* Stats */
+        .stats-box {
+            text-align: center;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .stats-number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .stats-label {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        /* Form */
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+        /* Table */
+        .table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .table thead th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
     </style>
 </head>
 <body>
-<div class="container-fluid dashboard-container">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar">
-            <h4 class="px-3 mb-4">📊 Dashboard</h4>
-            <nav class="nav flex-column">
-                <a class="nav-link active" href="#" onclick="showSection('thongke', this)">Thống kê</a>
-                <a class="nav-link" href="#" onclick="showSection('dangtin', this)">Đăng tin tuyển dụng</a>
-                <a class="nav-link" href="#" onclick="showSection('quanlytin', this)">Quản lý tin</a>
-            </nav>
+<!-- Top Header -->
+<div class="top-header d-flex justify-content-between align-items-center">
+    <div class="company-info">
+        <div class="company-avatar">
+            {{ (current_user.ten_ntd or 'C')[0].upper() }}
         </div>
+        <div>
+            <p class="greeting-text mb-1">Xin chào!</p>
+            <h5 class="company-name">{{ current_user.ten_ntd }}</h5>
+        </div>
+    </div>
+    <a href="{{ url_for('logout_process') }}" class="btn logout-btn">
+        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+    </a>
+</div>
 
-        <!-- Content -->
-        <div class="col-md-9 col-lg-10 p-4">
+<!-- Dashboard Layout -->
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="sidebar-title"><i class="fas fa-chart-line"></i> Dashboard</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="#" onclick="showSection('thongke', this)">
+                <i class="fas fa-chart-bar"></i> Thống kê
+            </a>
+            <a class="nav-link" href="#" onclick="showSection('dangtin', this)">
+                <i class="fas fa-plus-circle"></i> Đăng tin tuyển dụng
+            </a>
+            <a class="nav-link" href="#" onclick="showSection('quanlytin', this)">
+                <i class="fas fa-clipboard-list"></i> Quản lý tin
+            </a>
+        </nav>
+    </div>
 
-            <!-- Thống kê -->
-            <div id="thongke" class="content-section active">
-                <h3 class="mb-4">📈 Thống kê</h3>
-                <div class="row">
-                    <div class="col-md-4"><div class="stats-box"><div class="stats-number">{{ tong_tin or 0 }}</div><div>Tin đã đăng</div></div></div>
-                    <div class="col-md-4"><div class="stats-box"><div class="stats-number">{{ tong_ung_vien or 0 }}</div><div>Lượt ứng tuyển</div></div></div>
-                    <div class="col-md-4"><div class="stats-box"><div class="stats-number">{{ tin_dang_hoat_dong or 0 }}</div><div>Tin đang hoạt động</div></div></div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Thống kê -->
+        <div id="thongke" class="content-section active">
+            <h3 class="section-title"><i class="fas fa-chart-line"></i> Thống kê tổng quan</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stats-box">
+                        <div class="stats-number">{{ tong_tin or 0 }}</div>
+                        <div class="stats-label">Tin đã đăng</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-box">
+                        <div class="stats-number">{{ tong_ung_vien or 0 }}</div>
+                        <div class="stats-label">Lượt ứng tuyển</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-box">
+                        <div class="stats-number">{{ tin_dang_hoat_dong or 0 }}</div>
+                        <div class="stats-label">Tin đang hoạt động</div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Đăng tin -->
-            <div id="dangtin" class="content-section">
-                <h3 class="mb-4">📝 Đăng tin tuyển dụng mới</h3>
-                <form method="POST" action="{{ url_for('dang_tin_tuyen_dung') }}">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Tên công việc</label>
-                            <input type="text" name="ten_cong_viec" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Địa chỉ làm việc</label>
-                            <input type="text" name="dia_chi_lam_viec" class="form-control" required>
-                        </div>
+        <!-- Đăng tin -->
+        <div id="dangtin" class="content-section">
+            <h3 class="mb-4"><i class="fas fa-plus-circle"></i> Đăng tin tuyển dụng mới</h3>
+            <form method="POST" action="{{ url_for('dang_tin_tuyen_dung') }}">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tên công việc</label>
+                        <input type="text" name="ten_cong_viec" class="form-control" required>
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Địa chỉ làm việc</label>
+                        <input type="text" name="dia_chi_lam_viec" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Số lượng tuyển</label>
+                        <input type="number" name="so_luong" class="form-control" min="1" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Giới tính yêu cầu</label>
+                        <select name="gioi_tinh_yc" class="form-select" required>
+                            <option value="">-- Chọn giới tính --</option>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Không yêu cầu">Không yêu cầu</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ngành nghề</label>
+                        <select name="ma_cn" class="form-select" required>
+                            <option value="">-- Chọn ngành nghề --</option>
+                            {% for cn in chuyen_nganhs %}
+                            <option value="{{ cn.id }}">{{ cn.ten_cn }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Loại công việc</label>
+                        <select name="ma_loai_cv" class="form-select" required>
+                            <option value="">-- Chọn loại công việc --</option>
+                            {% for loai in loai_congviecs %}
+                            <option value="{{ loai.id }}">{{ loai.ten_loai_cv }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Cấp bậc</label>
+                        <select name="ma_cap_bac" class="form-select" required>
+                            <option value="">-- Chọn cấp bậc --</option>
+                            {% for cb in cap_bacs %}
+                            <option value="{{ cb.id }}">{{ cb.ten_cap_bac }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mức lương</label>
+                        <select name="ma_muc_luong" class="form-select" required>
+                            <option value="">-- Chọn mức lương --</option>
+                            {% for ml in muc_luongs %}
+                            <option value="{{ ml.id }}">{{ ml.ten_muc_luong }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mô tả công việc</label>
+                    <textarea name="mo_ta" id="mo_ta"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Yêu cầu</label>
+                    <textarea name="yeu_cau" id="yeu_cau"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Quyền lợi</label>
+                    <textarea name="quyen_loi" id="quyen_loi"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Hạn nộp</label>
+                    <input type="date" name="han_nop" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-paper-plane me-2"></i> Đăng tin</button>
+            </form>
+        </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Số lượng tuyển</label>
-                            <input type="number" name="so_luong" class="form-control" min="1" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Giới tính yêu cầu</label>
-                            <select name="gioi_tinh_yc" class="form-select" required>
-                                <option value="">-- Chọn giới tính --</option>
-                                <option value="Nam">Nam</option>
-                                <option value="Nữ">Nữ</option>
-                                <option value="Không yêu cầu">Không yêu cầu</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Ngành nghề</label>
-                            <select name="ma_cn" class="form-select" required>
-                                <option value="">-- Chọn ngành nghề --</option>
-                                {% for cn in chuyen_nganhs %}
-                                    <option value="{{ cn.id }}">{{ cn.ten_cn }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Loại công việc</label>
-                            <select name="ma_loai_cv" class="form-select" required>
-                                <option value="">-- Chọn loại công việc --</option>
-                                {% for loai in loai_congviecs %}
-                                    <option value="{{ loai.id }}">{{ loai.ten_loai_cv }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Cấp bậc</label>
-                            <select name="ma_cap_bac" class="form-select" required>
-                                <option value="">-- Chọn cấp bậc --</option>
-                                {% for cb in cap_bacs %}
-                                    <option value="{{ cb.id }}">{{ cb.ten_cap_bac }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Mức lương</label>
-                            <select name="ma_muc_luong" class="form-select" required>
-                                <option value="">-- Chọn mức lương --</option>
-                                {% for ml in muc_luongs %}
-                                    <option value="{{ ml.id }}">{{ ml.ten_muc_luong }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Mô tả công việc</label>
-                        <textarea name="mo_ta" id="mo_ta"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Yêu cầu</label>
-                        <textarea name="yeu_cau" id="yeu_cau"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Quyền lợi</label>
-                        <textarea name="quyen_loi" id="quyen_loi"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Hạn nộp</label>
-                        <input type="date" name="han_nop" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-success">Đăng tin</button>
-                </form>
-            </div>
-
-            <!-- Quản lý tin -->
-            <div id="quanlytin" class="content-section">
-                <h3 class="mb-4">📋 Quản lý tin tuyển dụng</h3>
-                {% if danh_sach_tin %}
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Tên công việc</th>
-                            <th>Ngày đăng</th>
-                            <th>Trạng thái</th>
-                            <th>Ứng viên</th>
-                            <th>Hành động</th>
-                        </tr>
+        <!-- Quản lý tin -->
+        <div id="quanlytin" class="content-section">
+            <h3 class="section-title"><i class="fas fa-clipboard-list"></i> Quản lý tin tuyển dụng</h3>
+            {% if danh_sach_tin %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>Tên công việc</th>
+                        <th>Ngày đăng</th>
+                        <th>Trạng thái</th>
+                        <th>Ứng viên</th>
+                        <th>Hành động</th>
+                    </tr>
                     </thead>
                     <tbody>
                     {% for tin in danh_sach_tin %}
                     <tr>
-                        <td>{{ tin.ten_cong_viec }}</td>
+                        <td><strong>{{ tin.ten_cong_viec }}</strong></td>
                         <td>{{ tin.ngay_dang.strftime("%d/%m/%Y") }}</td>
                         <td>
                             {% if tin.trang_thai %}
-                                <span class="badge bg-success">Hoạt động</span>
+                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Hoạt động</span>
                             {% else %}
-                                <span class="badge bg-danger">Đã đóng</span>
+                            <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Đã đóng</span>
                             {% endif %}
                         </td>
-                        <td>{{ tin.ung_tuyen|length }}</td>
+                        <td><span class="badge bg-info">{{ tin.ung_tuyen|length }} ứng viên</span></td>
                         <td>
-                            <!-- Xóa tin -->
-                            <form method="POST" action="{{ url_for('xoa_tin_tuyen_dung', ma_ttd=tin.id) }}" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn chắc chắn muốn xoá tin này?')">Xoá</button>
+                            <form method="POST" action="{{ url_for('xoa_tin_tuyen_dung', ma_ttd=tin.id) }}"
+                                  style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Bạn chắc chắn muốn xoá tin này?')">
+                                    <i class="fas fa-trash me-1"></i>Xoá
+                                </button>
                             </form>
-                            <!-- Xem ứng viên -->
-                            <button type="button" class="btn btn-sm btn-info" onclick="xemUngVien({{ tin.id }})">Ứng viên</button>
+                            <button type="button" class="btn btn-sm btn-info" onclick="xemUngVien({{ tin.id }})">
+                                <i class="fas fa-users me-1"></i>Ứng viên
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
                     </tbody>
                 </table>
-                {% else %}
-                <p class="text-muted">Chưa có tin tuyển dụng nào.</p>
-                {% endif %}
             </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <p class="text-muted">Chưa có tin tuyển dụng nào.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Modal Xem Ứng viên -->
-<div class="modal fade" id="ungVienModal" tabindex="-1" aria-labelledby="ungVienModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="ungVienModalLabel">Danh sách ứng viên</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-      </div>
-      <div class="modal-body">
-        <div id="ungVienContent">
-          <p class="text-muted">Chưa có dữ liệu...</p>
+<!-- Modal ứng viên -->
+<div class="modal fade" id="ungVienModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-users me-2"></i> Danh sách ứng viên</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="ungVienContent">
+                <p class="text-center text-muted">Đang tải dữ liệu...</p>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -217,63 +470,61 @@
         el.classList.add("active");
     }
 
-    // CKEditor
-    ClassicEditor.create(document.querySelector('#mo_ta')).catch(e=>console.error(e));
-    ClassicEditor.create(document.querySelector('#yeu_cau')).catch(e=>console.error(e));
-    ClassicEditor.create(document.querySelector('#quyen_loi')).catch(e=>console.error(e));
+    ClassicEditor.create(document.querySelector('#mo_ta')).catch(e => console.error(e));
+    ClassicEditor.create(document.querySelector('#yeu_cau')).catch(e => console.error(e));
+    ClassicEditor.create(document.querySelector('#quyen_loi')).catch(e => console.error(e));
 
-    // Xem ứng viên (AJAX)
     function xemUngVien(ma_ttd) {
         const modal = new bootstrap.Modal(document.getElementById("ungVienModal"));
         modal.show();
-
-        document.getElementById("ungVienContent").innerHTML = `<p class="text-muted">Đang tải dữ liệu...</p>`;
+        document.getElementById("ungVienContent").innerHTML = "<p class='text-center text-muted'>Đang tải dữ liệu...</p>";
 
         fetch(`/nhatuyendung/${ma_ttd}/ungvien`)
             .then(res => res.json())
             .then(data => {
                 let html = "";
                 if (data.length === 0) {
-                    html = `<p class="text-muted">Chưa có ứng viên nào ứng tuyển.</p>`;
+                    html = `<p class='text-center text-muted'>Chưa có ứng viên nào ứng tuyển.</p>`;
                 } else {
                     html = `
-                    <table class="table table-bordered table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Họ tên</th>
-                                <th>Email</th>
-                                <th>CV</th>
-                                <th>Ngày ứng tuyển</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Họ tên</th>
+                                        <th>Email</th>
+                                        <th>CV</th>
+                                        <th>Ngày ứng tuyển</th>
+                                        <th>Trạng thái</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
                     data.forEach(uv => {
                         html += `
-                        <tr>
-                            <td>${uv.ten_uv}</td>
-                            <td>${uv.email}</td>
-                            <td>${uv.link_cv ? `<a href="${uv.link_cv}" target="_blank" class="btn btn-sm btn-outline-primary">Xem CV</a>` : "Chưa nộp"}</td>
-                            <td>${uv.ngay_ung_tuyen}</td>
-                            <td><span class="badge ${uv.trang_thai === "Phê duyệt" ? "bg-success" : (uv.trang_thai === "Từ chối" ? "bg-danger" : "bg-secondary")}">${uv.trang_thai}</span></td>
-                            <td>
-                                ${uv.trang_thai === "Đang chờ" ? `
-                                <form method="POST" action="/nhatuyendung/pheduyet/${uv.id}" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-success">Phê duyệt</button>
-                                </form>
-                                <form method="POST" action="/nhatuyendung/tuchoi/${uv.id}" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-danger">Từ chối</button>
-                                </form>` : `<span class="text-muted">Đã xử lý</span>`}
-                            </td>
-                        </tr>`;
+                            <tr>
+                                <td><strong>${uv.ten_uv}</strong></td>
+                                <td>${uv.email}</td>
+                                <td>${uv.link_cv ? `<a href="${uv.link_cv}" target="_blank" class="btn btn-sm btn-outline-primary">Xem CV</a>` : "<span class='text-muted'>Chưa nộp</span>"}</td>
+                                <td>${uv.ngay_ung_tuyen}</td>
+                                <td><span class="badge ${uv.trang_thai === "Phê duyệt" ? "bg-success" : (uv.trang_thai === "Từ chối" ? "bg-danger" : "bg-secondary")}">${uv.trang_thai}</span></td>
+                                <td>
+                                    ${uv.trang_thai === "Đang chờ" ? `
+                                    <form method="POST" action="/nhatuyendung/pheduyet/${uv.id}" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-success me-1">Phê duyệt</button>
+                                    </form>
+                                    <form method="POST" action="/nhatuyendung/tuchoi/${uv.id}" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger">Từ chối</button>
+                                    </form>` : `<span class="text-muted">Đã xử lý</span>`}
+                                </td>
+                            </tr>`;
                     });
-                    html += "</tbody></table>";
+                    html += "</tbody></table></div>";
                 }
                 document.getElementById("ungVienContent").innerHTML = html;
             })
             .catch(err => {
-                document.getElementById("ungVienContent").innerHTML = `<p class="text-danger">Lỗi tải ứng viên!</p>`;
+                document.getElementById("ungVienContent").innerHTML = "<p class='text-center text-danger'>Lỗi tải dữ liệu ứng viên!</p>";
                 console.error(err);
             });
     }

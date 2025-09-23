@@ -34,7 +34,7 @@
             background: #fff;
             border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             border: 1px solid #f0f0f0;
         }
@@ -101,23 +101,29 @@
         {% for job in jobs %}
         <div class="job-card">
             <div class="job-title">
-                <a href="#">{{ job.ten_ttd }}</a> - {{ job.ten_cong_viec }}
+                <a href="#">{{ job.ten_ttd }}</a> {{ job.ten_cong_viec }}
             </div>
             <div class="company-name">{{ job.nha_tuyen_dung.ten_ntd }}</div>
 
-            <div class="job-detail">📍 <span>{{ job.dia_chi_lam_viec }}</span></div>
-            <div class="job-detail">💰 <span class="salary">{{ job.muc_luong.ten_muc_luong }}</span></div>
+            <div class="job-detail">📍 <span>Địa chỉ: {{ job.dia_chi_lam_viec }}</span></div>
+            <div class="job-detail">💰 <span class="salary">Mức lương: {{ job.muc_luong.ten_muc_luong }}</span></div>
 
             {% set ut = job.ung_tuyen[0] if job.ung_tuyen else None %}
             <div class="job-detail">📅
-                <span class="apply-date">{{ ut.ngay_ung_tuyen.strftime("%d-%m-%Y") if ut else "" }}</span>
+                <span class="apply-date">Ngày ứng tuyển: {{ ut.ngay_ung_tuyen.strftime("%d-%m-%Y") if ut else "" }}</span>
             </div>
             <div class="job-detail">⚡
-                <span class="status">{{ ut.trang_thai }}</span>
+                <span class="status">Trạng thái: {{ ut.trang_thai if ut else "" }}</span>
             </div>
+
+            {% if ut and ut.trang_thai == "Phê duyệt" %}
+            <div class="job-detail text-success fw-bold">
+                 Yêu cầu đã được duyệt hãy đợi mail từ nhà tuyển dụng</div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
+
     {% else %}
     <div class="no-jobs">
         <div class="no-jobs-icon">📋</div>
