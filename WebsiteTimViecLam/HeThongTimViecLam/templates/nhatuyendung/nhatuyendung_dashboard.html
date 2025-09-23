@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- CKEditor 5 Classic -->
+
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
     <style>
         body {
@@ -19,7 +19,7 @@
             flex-direction: column;
         }
 
-        /* Header */
+
         .top-header {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -76,7 +76,7 @@
             color: white;
         }
 
-        /* Container Layout */
+
         .dashboard-container {
             flex: 1;
             display: flex;
@@ -84,7 +84,7 @@
             min-height: calc(100vh - 70px);
         }
 
-        /* Sidebar */
+
         .sidebar {
             width: 250px;
             background: rgba(255, 255, 255, 0.95);
@@ -129,7 +129,7 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
-        /* Main Content */
+
         .main-content {
             flex: 1;
             background: rgba(255, 255, 255, 0.95);
@@ -169,7 +169,7 @@
             font-size: 24px;
         }
 
-        /* Stats */
+
         .stats-box {
             text-align: center;
             padding: 25px 20px;
@@ -189,7 +189,7 @@
             opacity: 0.9;
         }
 
-        /* Form */
+
         .form-label {
             font-weight: 600;
             color: #333;
@@ -207,7 +207,7 @@
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
         }
 
-        /* Table */
+
         .table {
             background: white;
             border-radius: 15px;
@@ -227,7 +227,7 @@
             background: rgba(102, 126, 234, 0.05);
         }
 
-        /* Modal */
+
         .modal-content {
             border-radius: 20px;
             border: none;
@@ -241,7 +241,7 @@
     </style>
 </head>
 <body>
-<!-- Top Header -->
+
 <div class="top-header d-flex justify-content-between align-items-center">
     <div class="company-info">
         <div class="company-avatar">
@@ -252,14 +252,17 @@
             <h5 class="company-name">{{ current_user.ten_ntd }}</h5>
         </div>
     </div>
+    <div class="flex-grow-1 text-center">
+        <h4 class="m-0 text-primary fw-bold">Open Job</h4>
+    </div>
     <a href="{{ url_for('logout_process') }}" class="btn logout-btn">
         <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
     </a>
 </div>
 
-<!-- Dashboard Layout -->
+
 <div class="dashboard-container">
-    <!-- Sidebar -->
+
     <div class="sidebar">
         <h4 class="sidebar-title"><i class="fas fa-chart-line"></i> Dashboard</h4>
         <nav class="nav flex-column">
@@ -275,30 +278,60 @@
         </nav>
     </div>
 
-    <!-- Main Content -->
+
     <div class="main-content">
-        <!-- Thống kê -->
+
         <div id="thongke" class="content-section active">
             <h3 class="section-title"><i class="fas fa-chart-line"></i> Thống kê tổng quan</h3>
-            <div class="row">
+
+            <!-- Bộ lọc tháng/năm -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">Chọn tháng</label>
+                    <select id="selectMonth" class="form-select">
+                        {% for m in range(1,13) %}
+                        <option value="{{m}}" {% if m== current_month %}selected{% endif %}>Tháng {{m}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Chọn năm</label>
+                    <select id="selectYear" class="form-select">
+                        {% for y in range(2023, 2031) %}
+                        <option value="{{y}}" {% if y== current_year %}selected{% endif %}>{{y}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick="loadChart()">Xem thống kê</button>
+                </div>
+            </div>
+
+            <!-- Các thống kê tổng quan -->
+            <div class="row mb-5">
                 <div class="col-md-4">
                     <div class="stats-box">
-                        <div class="stats-number">{{ tong_tin or 0 }}</div>
+                        <div class="stats-number tong-tin">{{ tong_tin or 0 }}</div>
                         <div class="stats-label">Tin đã đăng</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stats-box">
-                        <div class="stats-number">{{ tong_ung_vien or 0 }}</div>
+                        <div class="stats-number tong-ung-vien">{{ tong_ung_vien or 0 }}</div>
                         <div class="stats-label">Lượt ứng tuyển</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stats-box">
-                        <div class="stats-number">{{ tin_dang_hoat_dong or 0 }}</div>
+                        <div class="stats-number tin-hoat-dong">{{ tin_dang_hoat_dong or 0 }}</div>
                         <div class="stats-label">Tin đang hoạt động</div>
                     </div>
                 </div>
+            </div>
+            <!-- Biểu đồ -->
+            <div class="card p-3">
+                <h5 class="mb-3">Biểu đồ lượt ứng tuyển</h5>
+                <canvas id="applyChart" height="120"></canvas>
             </div>
         </div>
 
@@ -529,5 +562,58 @@
             });
     }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let chart;
+
+    function loadChart() {
+        const month = document.getElementById("selectMonth").value;
+        const year = document.getElementById("selectYear").value;
+        // Thống kê tổng quan
+        fetch(`/api/thongke/tongquan?month=${month}&year=${year}`)
+            .then(res => res.json())
+            .then(data => {
+                document.querySelector(".stats-number.tong-tin").textContent = data.tong_tin;
+                document.querySelector(".stats-number.tong-ung-vien").textContent = data.tong_ung_vien;
+                document.querySelector(".stats-number.tin-hoat-dong").textContent = data.tin_dang_hoat_dong;
+            });
+
+        fetch(`/api/thongke/ungtuyen?month=${month}&year=${year}`)
+            .then(res => res.json())
+            .then(data => {
+                const labels = data.map(d => `Tháng ${d.month}/${d.year}`);
+                const counts = data.map(d => d.count);
+
+                if (chart) chart.destroy();
+
+                const ctx = document.getElementById("applyChart").getContext("2d");
+                chart = new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Lượt ứng tuyển",
+                            data: counts,
+                            backgroundColor: "rgba(102,126,234,0.8)",
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {stepSize: 1}
+                            }
+                        }
+                    }
+                });
+            });
+    }
+
+
+    document.addEventListener("DOMContentLoaded", loadChart);
+</script>
+
 </body>
 </html>

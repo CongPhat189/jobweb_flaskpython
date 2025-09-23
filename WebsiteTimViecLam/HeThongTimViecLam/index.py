@@ -9,6 +9,8 @@ from WebsiteTimViecLam.HeThongTimViecLam.decorater import annonymous_user
 from WebsiteTimViecLam.HeThongTimViecLam.models import *
 from datetime import datetime
 import hmac, hashlib, json, requests
+from sqlalchemy import extract, func
+import calendar, datetime
 
 
 
@@ -433,6 +435,73 @@ def api_ds_ung_vien(ma_ttd):
         })
 
     return jsonify(ds)
+
+@app.route("/api/thongke/ungtuyen")
+@login_required
+def api_thongke_ungtuyen():
+    month = int(request.args.get("month", datetime.datetime.now().month))
+    year = int(request.args.get("year", datetime.datetime.now().year))
+
+    # Lấy 3 tháng: tháng chọn và 2 tháng trước
+    months = []
+    for i in range(2, -1, -1):
+        m = month - i
+        y = year
+        if m <= 0:  # lùi sang năm trước
+            m += 12
+            y -= 1
+        months.append((m, y))
+
+    data = []
+    for m, y in months:
+        count = db.session.query(func.count(UngTuyen.id))\
+            .join(TinTuyenDung)\
+            .filter(
+                extract('month', UngTuyen.ngay_ung_tuyen) == m,
+                extract('year', UngTuyen.ngay_ung_tuyen) == y,
+                TinTuyenDung.ma_ntd == current_user.id
+            ).scalar() or 0
+        data.append({"month": m, "year": y, "count": count})
+
+    return jsonify(data)
+
+@app.route("/api/thongke/tongquan")
+@login_required
+def api_thongke_tongquan():
+    month = int(request.args.get("month"))
+    year = int(request.args.get("year"))
+
+    # Tổng tin đã đăng trong tháng
+    tong_tin = db.session.query(func.count(TinTuyenDung.id))\
+        .filter(
+            extract('month', TinTuyenDung.ngay_dang) == month,
+            extract('year', TinTuyenDung.ngay_dang) == year,
+            TinTuyenDung.ma_ntd == current_user.id
+        ).scalar() or 0
+
+    # Tổng lượt ứng tuyển trong tháng
+    tong_ung_vien = db.session.query(func.count(UngTuyen.id))\
+        .join(TinTuyenDung)\
+        .filter(
+            extract('month', UngTuyen.ngay_ung_tuyen) == month,
+            extract('year', UngTuyen.ngay_ung_tuyen) == year,
+            TinTuyenDung.ma_ntd == current_user.id
+        ).scalar() or 0
+
+    # Số tin đang hoạt động trong tháng
+    tin_dang_hoat_dong = db.session.query(func.count(TinTuyenDung.id))\
+        .filter(
+            extract('month', TinTuyenDung.ngay_dang) == month,
+            extract('year', TinTuyenDung.ngay_dang) == year,
+            TinTuyenDung.ma_ntd == current_user.id,
+            TinTuyenDung.trang_thai == True
+        ).scalar() or 0
+
+    return jsonify({
+        "tong_tin": tong_tin,
+        "tong_ung_vien": tong_ung_vien,
+        "tin_dang_hoat_dong": tin_dang_hoat_dong
+    })
 
 
 @app.route("/admindashboard")
