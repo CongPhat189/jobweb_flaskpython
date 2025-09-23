@@ -1,4 +1,6 @@
-from WebsiteTimViecLam.HeThongTimViecLam.models import HoSoXinViec,LoaiCongViec,CapBac,ChuyenNganh,DiaChi,MucLuong,NhaTuyenDung,TinTuyenDung,UngTuyen,UngVien,TaiKhoan
+import uuid
+
+from WebsiteTimViecLam.HeThongTimViecLam.models import *
 from flask_login import current_user
 from WebsiteTimViecLam.HeThongTimViecLam import app, db
 import hashlib
@@ -220,36 +222,89 @@ def ungTuyen(ma_ttd,ma_uv, file=None):
 
 
 # chucnangcuanhatuyendung
-
+def count_job_posts_by_ntd(ma_ntd):
+    return TinTuyenDung.query.filter_by(ma_ntd=ma_ntd).count()
 
 def add_job_post(ma_ntd, ten_cong_viec, dia_chi, so_luong, gioi_tinh_yc,
                  ma_cn, ma_loai_cv, ma_cap_bac, ma_muc_luong,
                  mo_ta, yeu_cau, ky_nang, quyen_loi, han_nop):
     try:
-        job = TinTuyenDung(
-            ma_ntd=ma_ntd,
-            ten_cong_viec=ten_cong_viec,
-            dia_chi_lam_viec=dia_chi,
-            so_luong=so_luong,
-            gioi_tinh_yc=gioi_tinh_yc,
-            ma_cn=ma_cn,
-            ma_loai_cv=ma_loai_cv,
-            ma_cap_bac=ma_cap_bac,
-            ma_muc_luong=ma_muc_luong,
-            mo_ta=mo_ta,
-            yeu_cau=yeu_cau,
-            ky_nang_lien_quan=ky_nang,
-            quyen_loi=quyen_loi,
-            ngay_dang=datetime.now(),
-            han_nop=han_nop,
-            trang_thai=True
-        )
-        db.session.add(job)
-        db.session.commit()
-        return job
+        # Kiểm tra số tin đã đăng
+        so_tin = count_job_posts_by_ntd(ma_ntd)
+
+        # Nếu là tin đầu tiên -> miễn phí
+        if so_tin == 0:
+            job = TinTuyenDung(
+                ma_ntd=ma_ntd,
+                ten_cong_viec=ten_cong_viec,
+                dia_chi_lam_viec=dia_chi,
+                so_luong=so_luong,
+                gioi_tinh_yc=gioi_tinh_yc,
+                ma_cn=ma_cn,
+                ma_loai_cv=ma_loai_cv,
+                ma_cap_bac=ma_cap_bac,
+                ma_muc_luong=ma_muc_luong,
+                mo_ta=mo_ta,
+                yeu_cau=yeu_cau,
+                ky_nang_lien_quan=ky_nang,
+                quyen_loi=quyen_loi,
+                ngay_dang=datetime.now(),
+                han_nop=han_nop,
+                trang_thai=True
+            )
+            db.session.add(job)
+            db.session.commit()
+            return job
+        else:
+            # Tạo job -> trạng thái chờ thanh toán
+            job = TinTuyenDung(
+                ma_ntd=ma_ntd,
+                ten_cong_viec=ten_cong_viec,
+                dia_chi_lam_viec=dia_chi,
+                so_luong=so_luong,
+                gioi_tinh_yc=gioi_tinh_yc,
+                ma_cn=ma_cn,
+                ma_loai_cv=ma_loai_cv,
+                ma_cap_bac=ma_cap_bac,
+                ma_muc_luong=ma_muc_luong,
+                mo_ta=mo_ta,
+                yeu_cau=yeu_cau,
+                ky_nang_lien_quan=ky_nang,
+                quyen_loi=quyen_loi,
+                ngay_dang=datetime.now(),
+                han_nop=han_nop,
+                trang_thai=False   # chưa active vì chưa thanh toán
+            )
+            db.session.add(job)
+            db.session.commit()
+
+            # Tạo giao dịch MoMo cho job này
+            create_transaction(ma_ntd=ma_ntd, ma_ttd=job.id, so_tien=10000)
+
+            return job
     except Exception as e:
         db.session.rollback()
         print(f"Lỗi khi đăng tin: {e}")
+        return None
+
+
+def create_transaction(ma_ntd, ma_ttd=None, so_tien=10000, noi_dung="Thanh toán đăng tin"):
+    try:
+        gd = GiaoDich(
+            ma_ntd=ma_ntd,
+            ma_ttd=ma_ttd,
+            so_tien=so_tien,
+            noi_dung=noi_dung,
+            request_id=str(uuid.uuid4()),
+            order_id=str(uuid.uuid4()),
+            trang_thai="Chờ xử lý"
+        )
+        db.session.add(gd)
+        db.session.commit()
+        return gd
+    except Exception as ex:
+        db.session.rollback()
+        print(f"Lỗi khi tạo giao dịch: {ex}")
         return None
 
 def delete_job_post(ma_ttd, ma_ntd):

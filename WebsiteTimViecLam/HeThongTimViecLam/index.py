@@ -8,6 +8,7 @@ from WebsiteTimViecLam.HeThongTimViecLam.dao import loadTinTuyenDung, ungTuyen, 
 from WebsiteTimViecLam.HeThongTimViecLam.decorater import annonymous_user
 from WebsiteTimViecLam.HeThongTimViecLam.models import *
 from datetime import datetime
+import hmac, hashlib, json, requests
 
 
 
@@ -55,26 +56,27 @@ def tao_cv_route():
 def ung_tuyen(ma_ttd):
     tin = TinTuyenDung.query.get(ma_ttd)
     if not tin:
-        flash("Tin tuyển dụng không tồn tại!", "danger")
+        flash("Tin tuyển dụng không tồn tại!", "apply_error")
         return redirect(url_for("index"))
 
     if request.method == "POST":
         file = request.files.get("file")  # lấy file từ form
         if not file or not file.filename.endswith(".pdf"):
-            flash("Vui lòng upload CV định dạng PDF!", "danger")
+            flash("Vui lòng upload CV định dạng PDF!", "apply_error")
             return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
 
         # Gọi hàm trong dao để lưu ứng tuyển
         result = dao.ungTuyen(ma_ttd=ma_ttd, ma_uv=current_user.id, file=file)
         if result:
-            flash("Ứng tuyển thành công!", "success")
+            flash("Ứng tuyển thành công!", "apply_success")
         else:
-            flash("Ứng tuyển thất bại. Vui lòng thử lại.", "danger")
+            flash("Ứng tuyển thất bại. Vui lòng thử lại.", "apply_error")
 
         return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
 
     # Nếu là GET thì render giao diện và truyền tin
     return render_template("ungtuyen.html", tin=tin)
+
 
 
 @app.route('/apply/<int:ma_ttd>', methods=['POST'])
@@ -90,9 +92,7 @@ def apply(ma_ttd):
 
     return redirect(url_for('index'))  # quay lại trang chính
 
-from flask import request, redirect, render_template, url_for
-from flask_login import login_user
-from WebsiteTimViecLam.HeThongTimViecLam import dao, app
+
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -213,7 +213,7 @@ def dang_tin_tuyen_dung():
     ma_cap_bac = request.form.get("ma_cap_bac")
     ma_muc_luong = request.form.get("ma_muc_luong")
 
-    result = dao.add_job_post(
+    job = dao.add_job_post(
         ma_ntd=current_user.id,
         ten_cong_viec=ten_cong_viec,
         dia_chi=dia_chi,
@@ -229,12 +229,119 @@ def dang_tin_tuyen_dung():
         quyen_loi=quyen_loi,
         han_nop=datetime.strptime(han_nop, "%Y-%m-%d")
     )
-    if result:
-        flash("Đăng tin thành công!", "success")
+
+    if job:
+        if job.trang_thai:
+            # tin đầu tiên: active ngay
+            flash("Đăng tin thành công (miễn phí lần đầu)!", "success")
+            return redirect(url_for("nhatuyendung_dashboard"))
+        else:
+            # tin thứ 2 trở đi: cần thanh toán
+            giao_dich = GiaoDich.query.filter_by(ma_ttd=job.id, ma_ntd=current_user.id).first()
+            if giao_dich:
+                flash("Bạn cần thanh toán 10.000đ để kích hoạt tin này!", "warning")
+                return redirect(url_for("momo_pay", giaodich_id=giao_dich.id))
+            else:
+                flash("Không tìm thấy giao dịch cho tin này!", "danger")
+                return redirect(url_for("nhatuyendung_dashboard"))
     else:
         flash("Đăng tin thất bại!", "danger")
+        return redirect(url_for("nhatuyendung_dashboard"))
+
+
+
+@app.route("/momo/pay/<int:giaodich_id>")
+@login_required
+def momo_pay(giaodich_id):
+    gd = GiaoDich.query.get(giaodich_id)
+    if not gd or gd.ma_ntd != current_user.id:
+        flash("Giao dịch không tồn tại hoặc không hợp lệ!", "danger")
+        return redirect(url_for("nhatuyendung_dashboard"))
+
+    endpoint = app.config['MOMO_ENDPOINT']
+    partnerCode = app.config['MOMO_PARTNER_CODE']
+    accessKey = app.config['MOMO_ACCESS_KEY']
+    secretKey = app.config['MOMO_SECRET_KEY']
+
+    requestId = gd.request_id
+    orderId = gd.order_id
+    orderInfo = gd.noi_dung
+    amount = str(gd.so_tien)
+    returnUrl = app.config['MOMO_RETURN_URL']
+    notifyUrl = app.config['MOMO_NOTIFY_URL']
+    extraData = ""
+
+    raw_signature = f"accessKey={accessKey}&amount={amount}&extraData={extraData}&ipnUrl={notifyUrl}&orderId={orderId}&orderInfo={orderInfo}&partnerCode={partnerCode}&redirectUrl={returnUrl}&requestId={requestId}&requestType=captureWallet"
+
+    h = hmac.new(secretKey.encode("utf-8"), raw_signature.encode("utf-8"), hashlib.sha256)
+    signature = h.hexdigest()
+
+    data = {
+        'partnerCode': partnerCode,
+        'accessKey': accessKey,
+        'requestId': requestId,
+        'amount': amount,
+        'orderId': orderId,
+        'orderInfo': orderInfo,
+        'redirectUrl': returnUrl,
+        'ipnUrl': notifyUrl,
+        'extraData': extraData,
+        'requestType': 'captureWallet',
+        'signature': signature,
+        'lang': 'vi'
+    }
+
+    res = requests.post(endpoint, json=data)
+    result = res.json()
+
+    if result.get("payUrl"):
+        return redirect(result["payUrl"])
+    else:
+        flash("Không thể tạo thanh toán MoMo", "danger")
+        return redirect(url_for("nhatuyendung_dashboard"))
+
+@app.route("/momo/return")
+def momo_return():
+    result = request.args.to_dict()
+    orderId = result.get("orderId")
+    gd = GiaoDich.query.filter_by(order_id=orderId).first()
+
+    if result.get("resultCode") == "0":  # 0 = thành công
+        gd.trang_thai = "Thành công"
+        # Mở tin tuyển dụng
+        if gd.ma_ttd:
+            tin = TinTuyenDung.query.get(gd.ma_ttd)
+            if tin:
+                tin.trang_thai = True
+        db.session.commit()
+        flash("Thanh toán thành công, tin đã được kích hoạt!", "success")
+    else:
+        gd.trang_thai = "Thất bại"
+        db.session.commit()
+        flash("Thanh toán thất bại!", "danger")
 
     return redirect(url_for("nhatuyendung_dashboard"))
+@app.route("/momo/notify", methods=["POST"])
+def momo_notify():
+    data = request.json
+    orderId = data.get("orderId")
+    gd = GiaoDich.query.filter_by(order_id=orderId).first()
+
+    if not gd:
+        return jsonify({"message": "Order not found"}), 404
+
+    if data.get("resultCode") == 0:
+        gd.trang_thai = "Thành công"
+        if gd.ma_ttd:
+            tin = TinTuyenDung.query.get(gd.ma_ttd)
+            if tin:
+                tin.trang_thai = True
+    else:
+        gd.trang_thai = "Thất bại"
+
+    db.session.commit()
+    return jsonify({"message": "OK"}), 200
+
 
 
 @app.route("/nhatuyendung/xoa/<int:ma_ttd>", methods=["DELETE"])

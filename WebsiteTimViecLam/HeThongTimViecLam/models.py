@@ -84,6 +84,7 @@ class NhaTuyenDung(TaiKhoan):
     anh_dai_dien = Column("AnhDaiDien", String(200))
 
     tin_tuyen_dung = relationship("TinTuyenDung", back_populates="nha_tuyen_dung")
+    giao_dich = relationship("GiaoDich", back_populates="nha_tuyen_dung")
 
     __mapper_args__ = {
         "polymorphic_identity": "nhatuyendung",
@@ -126,7 +127,7 @@ class TinTuyenDung(db.Model):
     so_luong = Column("SoLuong", Integer)
     gioi_tinh_yc = Column("GioiTinhYC", String(50))
 
-    # đổi sang Text để lưu nội dung dài từ CKEditor
+
     mo_ta = Column("MoTaCongViec", Text)
     yeu_cau = Column("YeuCauCongViec", Text)
     ky_nang_lien_quan = Column("KyNangLienQuan", Text)
@@ -143,6 +144,7 @@ class TinTuyenDung(db.Model):
     muc_luong = relationship("MucLuong", backref="tin_tuyen_dung")
     cap_bac = relationship("CapBac", backref="tin_tuyen_dung")
     ung_tuyen = relationship("UngTuyen", back_populates="tin_tuyen_dung")
+    giao_dich = relationship("GiaoDich", back_populates="tin_tuyen_dung")
 
 
 class UngTuyen(db.Model):
@@ -164,6 +166,21 @@ class UngTuyen(db.Model):
     # Quan hệ
     tin_tuyen_dung = relationship("TinTuyenDung", back_populates="ung_tuyen")
     ung_vien = relationship("UngVien", back_populates="ung_tuyen")
+
+class GiaoDich(db.Model):
+    __tablename__ = "tbl_giaodich"
+    id = Column("MaGD", Integer, primary_key=True, autoincrement=True)
+    ma_ntd = Column("MaNTD", Integer, ForeignKey("tbl_nhatuyendung.MaNTD"), nullable=False)
+    ma_ttd = Column("MaTTD", Integer, ForeignKey("tbl_tintuyendung.MaTTD"), nullable=True)
+    so_tien = Column("SoTien", Integer, nullable=False)
+    noi_dung = Column("NoiDung", String(255))
+    ngay_tao = Column("NgayTao", DateTime, default=datetime.now)
+    trang_thai = Column("TrangThai", String(20), default="Chờ xử lý")  # Chờ xử lý | Thành công | Thất bại
+    request_id = Column("RequestId", String(64))
+    order_id = Column("OrderId", String(64))
+
+    nha_tuyen_dung = relationship("NhaTuyenDung", back_populates="giao_dich")
+    tin_tuyen_dung = relationship("TinTuyenDung", back_populates="giao_dich")
 
 
 if __name__=='__main__':
