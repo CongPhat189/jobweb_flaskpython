@@ -25,3 +25,10 @@ cloudinary.config(
     api_secret = "A34d8SUWJZnBLiGAgOPEIhqRB_c",
     secure=True
 )
+
+app.config['MOMO_PARTNER_CODE'] = "MOMO21KI20250819_TEST"
+app.config['MOMO_ACCESS_KEY'] = "W0G8ZaNtjc91prgE"
+app.config['MOMO_SECRET_KEY'] = "90HHIW0ENvoHJJL4ScE09vxqpQOMq5ZW"
+app.config['MOMO_ENDPOINT'] = "https://test-payment.momo.vn/v2/gateway/api/create"
+app.config['MOMO_RETURN_URL'] = "http://127.0.0.1:5000/momo/return"
+app.config['MOMO_NOTIFY_URL'] = "http://127.0.0.1:5000/momo/notify"
