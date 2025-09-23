@@ -3,7 +3,8 @@ from flask_login import login_user, logout_user, current_user, login_required
 
 from WebsiteTimViecLam.HeThongTimViecLam import app, db, dao, Login
 
-from WebsiteTimViecLam.HeThongTimViecLam.dao import loadTinTuyenDung,ungTuyen
+from WebsiteTimViecLam.HeThongTimViecLam.dao import loadTinTuyenDung, ungTuyen, get_cap_bac, get_chuyen_nganh, \
+    get_loai_cong_viec
 from WebsiteTimViecLam.HeThongTimViecLam.decorater import annonymous_user
 from WebsiteTimViecLam.HeThongTimViecLam.models import *
 from datetime import datetime
@@ -16,41 +17,68 @@ def get_user(user_id):
 
 @app.route("/")
 def index():
-    tintuyendung=loadTinTuyenDung()
+    ten_ntd=request.args.get('ten_ntd')
+    tintuyendung = loadTinTuyenDung(ten_ntd=ten_ntd)
     return  render_template("index.html",ttd=tintuyendung)
 
+@app.route("/hoso")
+@login_required
+def view_hoso():
+    from WebsiteTimViecLam.HeThongTimViecLam import dao
+    ho_sos = dao.get_hoso_by_current_user()
+    return render_template("hoso.html", ho_sos=ho_sos)
+
 @app.route("/taocv", methods=["GET", "POST"])
+@login_required
 def tao_cv_route():
+    capbac=get_cap_bac()
+    chuyennganh=get_chuyen_nganh()
+    loaicv=get_loai_cong_viec()
     if request.method == "POST":
         hs = dao.tao_cv(
             ten_hs=request.form.get("ten_hs"),
-            ma_uv=1,  # giả sử user đã đăng nhập
-            muc_tieu=request.form.get("vitri"),
+            ma_uv=current_user.id,
+            muc_tieu=request.form.get("muc_tieu_nghe_nghiep"),
+            kinh_nghiem=request.form.get("kinh_nghiem"),
+            ky_nang=request.form.get("ky_nang"),
+            hoc_van=request.form.get("hoc_van"),
             file=request.files.get("file_cv")
         )
         flash("Tạo CV thành công!", "success")
         return redirect(url_for("tao_cv_route"))
 
-    return render_template("taocv.html")
+    return render_template("taocv.html",chuyen_nganhs=chuyennganh,loai_cvs=loaicv,cap_bacs=capbac)
 
 
 @app.route("/ungtuyen/<int:ma_ttd>", methods=["GET", "POST"])
+@login_required
 def ung_tuyen(ma_ttd):
+    tin = TinTuyenDung.query.get(ma_ttd)
+    if not tin:
+        flash("Tin tuyển dụng không tồn tại!", "danger")
+        return redirect(url_for("index"))
+
     if request.method == "POST":
-        file = request.files.get("file")  # lấy file PDF từ form
-        result = ungTuyen(ma_ttd=ma_ttd, file=file)
-        if result:
-            flash("Ứng tuyển thành công!", "success")
-            return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
-        else:
-            flash("Ứng tuyển thất bại. Vui lòng thử lại.", "danger")
+        file = request.files.get("file")  # lấy file từ form
+        if not file or not file.filename.endswith(".pdf"):
+            flash("Vui lòng upload CV định dạng PDF!", "danger")
             return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
 
-    # Nếu là GET thì hiển thị form upload
-    return render_template("ungtuyen.html", ma_ttd=ma_ttd)
+        # Gọi hàm trong dao để lưu ứng tuyển
+        result = dao.ungTuyen(ma_ttd=ma_ttd, ma_uv=current_user.id, file=file)
+        if result:
+            flash("Ứng tuyển thành công!", "success")
+        else:
+            flash("Ứng tuyển thất bại. Vui lòng thử lại.", "danger")
+
+        return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
+
+    # Nếu là GET thì render giao diện và truyền tin
+    return render_template("ungtuyen.html", tin=tin)
 
 
 @app.route('/apply/<int:ma_ttd>', methods=['POST'])
+@login_required
 def apply(ma_ttd):
     file = request.files.get('cv')
     if file and file.filename.endswith('.pdf'):

@@ -149,7 +149,7 @@ class UngTuyen(db.Model):
     __tablename__ = "tbl_ungtuyen"
     id = Column("MaUngTuyen", Integer, primary_key=True, autoincrement=True)
     ma_ttd = Column("MaTTD", Integer, ForeignKey("tbl_tintuyendung.MaTTD"), nullable=False)
-    ma_uv = Column("MaUngVien", Integer, ForeignKey("tbl_taikhoan.MaTaiKhoan"), nullable=False)
+    ma_uv = Column("MaUngVien", Integer, ForeignKey("tbl_ungvien.MaUngVien"), nullable=False)
     link_cv = Column("LinkCV", String(200))
     ngay_ung_tuyen = Column("NgayUngTuyen", Date, default=datetime.now)
 
@@ -168,8 +168,8 @@ class UngTuyen(db.Model):
 
 if __name__=='__main__':
     with app.app_context():
-        # db.drop_all()
-        # db.create_all()
+        db.drop_all()
+        db.create_all()
 
         diachis = [
             DiaChi(ten_dia_chi="Hà Nội"),
@@ -204,9 +204,4 @@ if __name__=='__main__':
 
         db.session.add_all(diachis + capbacs + mucluongs + chuyennganhs + loaicongviecs)
         db.session.commit()
-#
-#
-#
-#
-#
-#
+
