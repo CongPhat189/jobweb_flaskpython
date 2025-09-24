@@ -3,48 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JobConnect - Tạo Hồ Sơ Xin Việc</title>
+  <title>Tạo CV - JobConnect</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body{background:#f5f8fb;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    body {background:#f5f8fb;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
     .navbar {background: white; box-shadow: 0 2px 6px rgba(15,23,42,0.06)}
-    .hero{padding:56px 0}
-    .card-ghost{border-radius:12px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
-    .cv-preview{background:#e9eef6;border-radius:10px;display:flex;align-items:center;justify-content:center;height:260px}
-    .cv-caption{font-size:14px;color:#6b7280;margin-top:8px;text-align:center}
-    .form-card{padding:20px}
-    .progress-small{height:10px;border-radius:8px}
-    .btn-upload{background:#2563eb;color:white}
-    .btn-create{background:#10b981;color:white}
-    @media (max-width:991px){.cv-preview{height:200px}}
+    .hero {padding:56px 0}
+    .card-ghost {border-radius:12px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+    .form-card {padding:20px}
+    .btn-create {background:#10b981;color:white}
   </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg">
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center" href="#"><strong style="color:#2563eb">Open Job</strong></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="/">Trang chủ</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Việc làm</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Công ty</a></li>
-        <li class="nav-item"><a class="nav-link" href="/taocv">Tạo CV</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Blog</a></li>
-      </ul>
-      <div class="d-flex gap-2">
-        {% if current_user.is_authenticated %}
-          <a href="/logout" class="btn btn-danger">Đăng xuất</a>
-        {% else %}
-          <a href="/login" class="btn btn-outline-primary">Đăng nhập</a>
-          <a href="/register" class="btn btn-primary">Đăng ký</a>
-        {% endif %}
-      </div>
-    </div>
+    <a class="navbar-brand" href="#"><strong style="color:#2563eb">Open Job</strong></a>
   </div>
 </nav>
 
@@ -52,64 +26,89 @@
   <div class="container">
     <div class="text-center mb-5">
       <h2>Tạo Hồ Sơ Xin Việc</h2>
-      <p class="text-muted">Điền đầy đủ thông tin bên dưới để tăng cơ hội ứng tuyển thành công</p>
+      <p class="text-muted">Nhập đầy đủ thông tin để tạo CV hoàn chỉnh</p>
     </div>
 
-    <div class="row g-4 justify-content-center align-items-start">
-      <div class="col-lg-7">
-        <div class="card card-ghost p-4">
-          <div class="cv-preview">
-            <img src="https://www.topcv.vn/images/cv/screenshots/vi/pro_1.png" alt="Mẫu CV" style="max-height:220px;max-width:100%;object-fit:contain;">
-          </div>
-          <div class="cv-caption">Mẫu CV Chuyên Nghiệp<br><small class="text-muted">Thiết kế hiện đại, dễ đọc</small></div>
-        </div>
-      </div>
-
-      <div class="col-lg-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
         <div class="card card-ghost form-card">
-          <h6 class="mb-3">Thông Tin Hồ Sơ</h6>
+          <form action="/taocv" method="POST" enctype="multipart/form-data">
 
-          <form id="cvForm" action="/taocv" method="POST" enctype="multipart/form-data">
+            <h6 class="mb-3">Thông tin cá nhân</h6>
             <div class="mb-2">
-              <label class="form-label small">Tên hồ sơ</label>
-              <input class="form-control" name="ten_hs" placeholder="CV Frontend Developer" required>
+              <label class="form-label small">Họ và tên</label>
+              <input class="form-control" name="full_name" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Chức danh</label>
+              <input class="form-control" name="title" placeholder="Ví dụ: Backend Developer">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Địa chỉ</label>
+              <input class="form-control" name="address">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Số điện thoại</label>
+              <input class="form-control" name="phone">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Email</label>
+              <input type="email" class="form-control" name="email">
+            </div>
+
+            <h6 class="mb-3">Giới thiệu bản thân</h6>
+            <textarea class="form-control mb-3" name="summary" rows="3"></textarea>
+
+            <h6 class="mb-3">Kỹ năng</h6>
+            <div class="mb-2">
+              <label class="form-label small">Programming Languages</label>
+              <textarea class="form-control" name="skills_programming" rows="2"></textarea>
             </div>
 
             <div class="mb-2">
-              <label class="form-label small">Mục tiêu nghề nghiệp</label>
-              <textarea class="form-control" name="muc_tieu_nghe_nghiep" rows="2" placeholder="Ví dụ: Phát triển kỹ năng lập trình..."></textarea>
+              <label class="form-label small">Frontend</label>
+              <textarea class="form-control" name="skills_frontend" rows="2"></textarea>
             </div>
 
             <div class="mb-2">
-              <label class="form-label small">Kinh nghiệm</label>
-              <textarea class="form-control" name="kinh_nghiem" rows="2" placeholder="Ví dụ: 2 năm làm việc tại công ty X..."></textarea>
+              <label class="form-label small">Backend</label>
+              <textarea class="form-control" name="skills_backend" rows="2"></textarea>
             </div>
 
             <div class="mb-2">
-              <label class="form-label small">Kỹ năng</label>
-              <textarea class="form-control" name="ky_nang" rows="2" placeholder="Ví dụ: React, Django, SQL..."></textarea>
+              <label class="form-label small">Deployment</label>
+              <textarea class="form-control" name="skills_deployment" rows="2"></textarea>
             </div>
 
             <div class="mb-2">
-              <label class="form-label small">Học vấn</label>
-              <textarea class="form-control" name="hoc_van" rows="2" placeholder="Ví dụ: Cử nhân CNTT - ĐH Khoa học Tự nhiên..."></textarea>
+              <label class="form-label small">Database</label>
+              <textarea class="form-control" name="skills_database" rows="2"></textarea>
             </div>
 
             <div class="mb-3">
-              <label class="form-label small">Tải File CV (PDF)</label>
-              <input type="file" class="form-control" name="file_cv" accept="application/pdf">
+              <label class="form-label small">Version Control</label>
+              <textarea class="form-control" name="skills_version_control" rows="2"></textarea>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label small">Tiến trình hoàn thành <span id="progressLabel" class="float-end">0%</span></label>
-              <div class="progress progress-small mb-2">
-                <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+            <h6 class="mb-3">Học vấn</h6>
+            <textarea class="form-control mb-3" name="education" rows="2"></textarea>
+
+            <h6 class="mb-3">Dự án</h6>
+            <div id="projects">
+              <div class="mb-3">
+                <input class="form-control mb-2" name="project_title[]" placeholder="Tên dự án">
+                <textarea class="form-control mb-2" name="project_desc[]" rows="2" placeholder="Mô tả dự án"></textarea>
+                <input class="form-control mb-2" name="project_tech[]" placeholder="Công nghệ sử dụng">
+                <input class="form-control" name="project_link[]" placeholder="Github/Website">
               </div>
             </div>
 
-            <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-create">➕ Lưu Hồ Sơ</button>
+            <button type="button" class="btn btn-outline-secondary mb-3" onclick="addProject()">➕ Thêm dự án</button>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-create">Tạo CV</button>
             </div>
+
           </form>
         </div>
       </div>
@@ -118,17 +117,19 @@
   </div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  const fileInput = document.querySelector('input[name="file_cv"]');
-  const progressBar = document.getElementById('progressBar');
-  const progressLabel = document.getElementById('progressLabel');
-
-  fileInput.addEventListener('change', ()=>{
-    if(!fileInput.files || fileInput.files.length===0) return;
-    progressBar.style.width = '100%';
-    progressLabel.textContent = '100%';
-  });
+  function addProject() {
+    const container = document.getElementById("projects");
+    const div = document.createElement("div");
+    div.classList.add("mb-3");
+    div.innerHTML = `
+      <input class="form-control mb-2" name="project_title[]" placeholder="Tên dự án">
+      <textarea class="form-control mb-2" name="project_desc[]" rows="2" placeholder="Mô tả dự án"></textarea>
+      <input class="form-control mb-2" name="project_tech[]" placeholder="Công nghệ sử dụng">
+      <input class="form-control" name="project_link[]" placeholder="Github/Website">
+    `;
+    container.appendChild(div);
+  }
 </script>
 
 </body>

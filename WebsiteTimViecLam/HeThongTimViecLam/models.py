@@ -46,10 +46,13 @@ class TaiKhoan(db.Model,UserMixin):
     id = Column("MaTaiKhoan", Integer, primary_key=True, autoincrement=True)
     username=Column(String(50),nullable=False, unique=True)
     email = Column("Email", String(100), unique=True, nullable=False)
-    mat_khau = Column("MatKhau", String(100), nullable=False)
+    google_id = Column("GoogleId", String(255), unique=True, nullable=True)
+    mat_khau = Column("MatKhau", String(100), nullable=True)
     ngay_tao = Column("NgayTao", DateTime, default=datetime.now)
     trang_thai = Column("TrangThai", Boolean, default=True)
     loai_tai_khoan = Column("LoaiTaiKhoan", String(20))  # "ungvien" hoặc "nhatuyendung"
+    ungvien = relationship("UngVien", uselist=False, back_populates="tai_khoan")
+    nhatuyendung = relationship("NhaTuyenDung", uselist=False, back_populates="tai_khoan")
 
     __mapper_args__ = {
         "polymorphic_identity": "taikhoan",
@@ -67,6 +70,8 @@ class UngVien(TaiKhoan):
     so_thich = Column("SoThich", String(200))
     dia_chi = Column("DiaChi", String(200))
 
+    tai_khoan = relationship("TaiKhoan", back_populates="ungvien")
+
     ho_so = relationship("HoSoXinViec", back_populates="ung_vien")
     ung_tuyen = relationship("UngTuyen", back_populates="ung_vien")
 
@@ -83,6 +88,7 @@ class NhaTuyenDung(TaiKhoan):
     so_dien_thoai = Column("SoDienThoai", String(20))
     anh_dai_dien = Column("AnhDaiDien", String(200))
 
+    tai_khoan = relationship("TaiKhoan", back_populates="nhatuyendung")
     tin_tuyen_dung = relationship("TinTuyenDung", back_populates="nha_tuyen_dung")
     giao_dich = relationship("GiaoDich", back_populates="nha_tuyen_dung")
 
@@ -93,24 +99,37 @@ class NhaTuyenDung(TaiKhoan):
 
 class HoSoXinViec(db.Model):
     __tablename__ = "tbl_hosoxinviec"
-    id = Column("MaHoSo", Integer, primary_key=True, autoincrement=True)
-    ten_hs = Column("TenHoSo", String(200))
-    ma_uv = Column("MaUngVien", Integer, ForeignKey("tbl_ungvien.MaUngVien"), nullable=False)
-    ma_cn = Column("MaCN", Integer, ForeignKey("tbl_chuyennganh.MaCN"))
-    ma_loai_cv = Column("MaLoaiCV", Integer, ForeignKey("tbl_loaicongviec.MaLoaiCV"))
-    ma_cap_bac = Column("MaCapBac", Integer, ForeignKey("tbl_capbac.MaCapBac"))
-    muc_tieu_nghe_nghiep = Column("MucTieuNgheNghiep", String(500))
-    kinh_nghiem = Column("KinhNghiem", String(500))
-    ky_nang = Column("KyNang", String(500))
-    hoc_van = Column("HocVan", String(500))
-    giai_thuong = Column("GiaiThuong", String(500))
-    file_cv = db.Column("FileCV", String(500))  # lưu URL PDF hoặc path
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ma_uv = db.Column(db.Integer, db.ForeignKey("tbl_ungvien.MaUngVien"), nullable=False)
+
+    # Thông tin cá nhân
+    ten_hs = db.Column(db.String(255), nullable=False)
+    title = db.Column(db.String(255))
+    address = db.Column(db.String(255))
+    phone = db.Column(db.String(50))
+    email = db.Column(db.String(120))
+
+    # Nội dung CV
+    muc_tieu_nghe_nghiep = db.Column(db.Text)
+    ky_nang = db.Column(db.Text)
+    hoc_van = db.Column(db.Text)
+    kinh_nghiem = db.Column(db.Text)
+    giai_thuong = db.Column(db.Text)
+
+    projects = db.Column(db.Text)
+    file_cv = db.Column(db.String(500))
+
+    # Foreign keys chính xác
+    ma_cn = db.Column(db.Integer, db.ForeignKey("tbl_chuyennganh.MaCN"), nullable=True)
+    ma_loai_cv = db.Column(db.Integer, db.ForeignKey("tbl_loaicongviec.MaLoaiCV"), nullable=True)
+    ma_cap_bac = db.Column(db.Integer, db.ForeignKey("tbl_capbac.MaCapBac"), nullable=True)
+
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     # Quan hệ
     ung_vien = relationship("UngVien", back_populates="ho_so")
-    chuyen_nganh = relationship("ChuyenNganh", backref="ho_so")
-    loai_cv = relationship("LoaiCongViec", backref="ho_so")
-    cap_bac = relationship("CapBac", backref="ho_so")
+
 
 
 
