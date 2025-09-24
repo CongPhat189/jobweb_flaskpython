@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash,jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, Blueprint, session
 from flask_login import login_user, logout_user, current_user, login_required
 
-from WebsiteTimViecLam.HeThongTimViecLam import app, db, dao, Login
+
+from WebsiteTimViecLam.HeThongTimViecLam import app, db, dao, Login, oauth
 
 from WebsiteTimViecLam.HeThongTimViecLam.dao import loadTinTuyenDung, ungTuyen, get_cap_bac, get_chuyen_nganh, \
     get_loai_cong_viec
@@ -10,13 +11,69 @@ from WebsiteTimViecLam.HeThongTimViecLam.models import *
 from datetime import datetime
 import hmac, hashlib, json, requests
 from sqlalchemy import extract, func
-import calendar, datetime
+
+# # ==== GOOGLE LOGIN ====
+@app.route("/login/google")
+def login_google():
+    redirect_uri = url_for("authorize_google", _external=True)
+    print("Redirect URI:", redirect_uri)
+    return oauth.google.authorize_redirect(redirect_uri)
 
 
+
+@app.route("/authorize/google")
+def authorize_google():
+    # Lấy token từ Google
+    token = oauth.google.authorize_access_token()
+    resp = oauth.google.get("userinfo")
+    info = resp.json()
+
+    email = info.get("email")
+    google_id = info.get("id")
+    name = info.get("name") or email.split("@")[0]  # fallback tên
+
+    # Tìm user trong DB
+    user = TaiKhoan.query.filter_by(email=email).first()
+
+    if not user:
+        # Nếu chưa tồn tại → tạo mới TaiKhoan
+        user = UngVien(
+            username=email.split("@")[0],
+            email=email,
+            google_id=google_id,
+            ten_uv=name,
+            mat_khau=None,
+            loai_tai_khoan="ungvien",
+            ngay_tao=datetime.now()
+        )
+        db.session.add(user)
+        db.session.commit()
+    else:
+        # Nếu có rồi mà chưa có google_id thì cập nhật
+        if not user.google_id:
+            user.google_id = google_id
+            db.session.commit()
+
+    # Đăng nhập với Flask-Login
+    login_user(user)
+    return redirect(url_for("index"))
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for("index"))  # index là trang chủ, bạn thay theo route của mình
 
 @Login.user_loader #Nhiem vu,Tacdung ?
 def get_user(user_id):
     return dao.get_user_by_ID(user_id)
+
+@app.template_filter("from_json")
+def from_json_filter(value):
+    try:
+        return json.loads(value) if value else {}
+    except Exception:
+        return {}
 
 @app.route("/")
 def index():
@@ -56,26 +113,7 @@ def view_hoso():
     ho_sos = dao.get_hoso_by_current_user()
     return render_template("hoso.html", ho_sos=ho_sos)
 
-@app.route("/taocv", methods=["GET", "POST"])
-@login_required
-def tao_cv_route():
-    capbac=get_cap_bac()
-    chuyennganh=get_chuyen_nganh()
-    loaicv=get_loai_cong_viec()
-    if request.method == "POST":
-        hs = dao.tao_cv(
-            ten_hs=request.form.get("ten_hs"),
-            ma_uv=current_user.id,
-            muc_tieu=request.form.get("muc_tieu_nghe_nghiep"),
-            kinh_nghiem=request.form.get("kinh_nghiem"),
-            ky_nang=request.form.get("ky_nang"),
-            hoc_van=request.form.get("hoc_van"),
-            file=request.files.get("file_cv")
-        )
-        flash("Tạo CV thành công!", "success")
-        return redirect(url_for("tao_cv_route"))
 
-    return render_template("taocv.html",chuyen_nganhs=chuyennganh,loai_cvs=loaicv,cap_bacs=capbac)
 
 
 @app.route("/ungtuyen/<int:ma_ttd>", methods=["GET", "POST"])
@@ -87,13 +125,25 @@ def ung_tuyen(ma_ttd):
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        file = request.files.get("file")  # lấy file từ form
-        if not file or not file.filename.endswith(".pdf"):
-            flash("Vui lòng upload CV định dạng PDF!", "apply_error")
-            return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
+        apply_type = request.form.get("apply_type")
 
-        # Gọi hàm trong dao để lưu ứng tuyển
-        result = dao.ungTuyen(ma_ttd=ma_ttd, ma_uv=current_user.id, file=file)
+        result = None
+        if apply_type == "upload":  # Cách 1: upload CV
+            file = request.files.get("file")
+            if not file or not file.filename.endswith(".pdf"):
+                flash("Vui lòng upload CV định dạng PDF!", "apply_error")
+                return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
+
+            result = dao.ungTuyen(ma_ttd=ma_ttd, ma_uv=current_user.id, file=file)
+
+        elif apply_type == "hoso":  # Cách 2: chọn hồ sơ hệ thống
+            ma_hs = request.form.get("ma_hs")
+            if not ma_hs:
+                flash("Vui lòng chọn hồ sơ!", "apply_error")
+                return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
+
+            result = dao.ungTuyen(ma_ttd=ma_ttd, ma_uv=current_user.id, ma_hs=int(ma_hs))
+
         if result:
             flash("Ứng tuyển thành công!", "apply_success")
         else:
@@ -101,8 +151,10 @@ def ung_tuyen(ma_ttd):
 
         return redirect(url_for("ung_tuyen", ma_ttd=ma_ttd))
 
-    # Nếu là GET thì render giao diện và truyền tin
-    return render_template("ungtuyen.html", tin=tin)
+    # GET: load danh sách hồ sơ ứng viên
+    ho_sos = HoSoXinViec.query.filter_by(ma_uv=current_user.id).all()
+    return render_template("ungtuyen.html", tin=tin, ho_sos=ho_sos)
+
 
 
 
@@ -371,7 +423,7 @@ def momo_notify():
 
 
 
-@app.route("/nhatuyendung/xoa/<int:ma_ttd>", methods=["DELETE"])
+@app.route("/nhatuyendung/xoa/<int:ma_ttd>", methods=["POST"])
 @login_required
 def xoa_tin_tuyen_dung(ma_ttd):
     try:
@@ -445,21 +497,25 @@ def api_ds_ung_vien(ma_ttd):
     if not tin:
         return jsonify([])  # tin không tồn tại
 
+    # chỉ cho phép đúng nhà tuyển dụng xem
     if tin.ma_ntd != current_user.id:
-        return jsonify([])  # không có quyền xem
+        return jsonify([])
 
     ds = []
     for ut in tin.ung_tuyen:
         ds.append({
             "id": ut.id,
             "ten_uv": ut.ung_vien.ten_uv,
-            "email": ut.ung_vien.email,
-            "link_cv": ut.link_cv,
-            "ngay_ung_tuyen": ut.ngay_ung_tuyen.strftime("%d/%m/%Y"),
+            "email": ut.ung_vien.tai_khoan.email if ut.ung_vien and ut.ung_vien.tai_khoan else None,
+            # Ưu tiên lấy file_cv từ hồ sơ, nếu không có thì lấy link_cv upload
+            "link_cv": ut.ho_so.file_cv if ut.ma_hs and ut.ho_so else ut.link_cv,
+            "ma_hs": ut.ma_hs,
+            "ngay_ung_tuyen": ut.ngay_ung_tuyen.strftime("%d/%m/%Y") if ut.ngay_ung_tuyen else None,
             "trang_thai": ut.trang_thai or "Đang chờ"
         })
 
     return jsonify(ds)
+
 
 @app.route("/api/thongke/ungtuyen")
 @login_required
@@ -669,6 +725,132 @@ def admin_view_tin(ma_ttd):
         return redirect(url_for("admin_dashboard"))
 
     return render_template("admin/admin_tin_detail.html", tin=tin)
+
+
+
+
+@app.route("/taocv", methods=["GET", "POST"])
+@login_required
+def tao_cv_route():
+    if request.method == "POST":
+        full_name = request.form.get("full_name")
+        title = request.form.get("title")
+        address = request.form.get("address")
+        phone = request.form.get("phone")
+        email = request.form.get("email")
+        summary = request.form.get("summary")
+
+        # skills
+        skills = {
+            "Programming Languages": request.form.get("skills_programming"),
+            "Frontend": request.form.get("skills_frontend"),
+            "Backend": request.form.get("skills_backend"),
+            "Deployment": request.form.get("skills_deployment"),
+            "Database": request.form.get("skills_database"),
+            "Version Control": request.form.get("skills_version_control"),
+        }
+
+        education = request.form.get("education")
+
+        # projects (list)
+        project_titles = request.form.getlist("project_title[]")
+        project_descs = request.form.getlist("project_desc[]")
+        project_techs = request.form.getlist("project_tech[]")
+        project_links = request.form.getlist("project_link[]")
+
+        projects = []
+        for i in range(len(project_titles)):
+            if project_titles[i].strip():
+                projects.append({
+                    "name": project_titles[i],
+                    "desc": project_descs[i],
+                    "tech": project_techs[i],
+                    "github": project_links[i],
+                    "time": ""  # có thể cho người dùng nhập thêm
+                })
+
+        # gọi dao để tạo cv
+        hs = dao.tao_cv(
+            ten_uv=full_name,
+            title=title,
+            dia_chi=address,
+            phone=phone,
+            email=email,
+            muc_tieu=summary,
+            ky_nang=skills,
+            hoc_van=education,
+            projects=projects
+        )
+
+        flash("Tạo CV thành công!", "success")
+        return redirect("/hoso")
+
+    return render_template("taocv.html")
+
+@app.route("/suacv/<int:cv_id>", methods=["GET", "POST"])
+@login_required
+def sua_cv_route(cv_id):
+    cv = HoSoXinViec.query.get_or_404(cv_id)
+
+    try:
+        cv.ky_nang = json.loads(cv.ky_nang) if cv.ky_nang else []
+    except Exception:
+        cv.ky_nang = []
+
+    if request.method == "POST":
+        full_name = request.form.get("full_name")
+        title = request.form.get("title")
+        address = request.form.get("address")
+        phone = request.form.get("phone")
+        email = request.form.get("email")
+        summary = request.form.get("summary")
+
+        skills = {
+            "Programming Languages": request.form.get("skills_programming"),
+            "Frontend": request.form.get("skills_frontend"),
+            "Backend": request.form.get("skills_backend"),
+            "Deployment": request.form.get("skills_deployment"),
+            "Database": request.form.get("skills_database"),
+            "Version Control": request.form.get("skills_version_control"),
+        }
+
+        education = request.form.get("education")
+
+        project_titles = request.form.getlist("project_title[]")
+        project_descs = request.form.getlist("project_desc[]")
+        project_techs = request.form.getlist("project_tech[]")
+        project_links = request.form.getlist("project_link[]")
+
+        projects = []
+        for i in range(len(project_titles)):
+            if project_titles[i].strip():
+                projects.append({
+                    "name": project_titles[i],
+                    "desc": project_descs[i],
+                    "tech": project_techs[i],
+                    "github": project_links[i],
+                    "time": ""
+                })
+
+
+        dao.sua_cv(
+            cv_id=cv_id,
+            ten_uv=full_name,
+            title=title,
+            dia_chi=address,
+            phone=phone,
+            email=email,
+            muc_tieu=summary,
+            ky_nang=skills,
+            hoc_van=education,
+            projects=projects
+        )
+
+        flash("Cập nhật CV thành công!", "success")
+        return redirect(url_for("view_hoso", cv_id=cv_id))
+
+    # truyền dữ liệu CV sang template
+    return render_template("suacv.html", cv=cv)
 
 
 
