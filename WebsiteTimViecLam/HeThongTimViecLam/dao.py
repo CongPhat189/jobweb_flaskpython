@@ -7,6 +7,8 @@ import hashlib
 import cloudinary
 import cloudinary.uploader
 from datetime import datetime
+from sqlalchemy import func, extract
+
 
 
 def auth_user(username, password, role=None):
@@ -30,8 +32,7 @@ def get_applied_jobs(ma_uv):
             .filter(UngTuyen.ma_uv == ma_uv)
             .all())
 
-def add_user(name, username, email, password, avatar=None):
-    mat_khau = str(hashlib.md5(password.encode('utf-8')).hexdigest())
+
 
 def add_user(name, username, email, password, role="ungvien", avatar=None,
              so_dien_thoai=None, ngay_sinh=None, so_thich=None, dia_chi=None):
@@ -71,20 +72,45 @@ def add_user(name, username, email, password, role="ungvien", avatar=None,
     return user
 
 
-def loadTinTuyenDung(id=None,page=1,ten_ntd=None):
-    query=TinTuyenDung.query
+def loadTinTuyenDung(
+    id=None, page=1,
+    keyword=None,   # tìm kiếm
+    ma_cn=None, ma_loai_cv=None, ma_cap_bac=None, ma_muc_luong=None, ma_dia_chi=None,
+    only_active=True
+):
+    query = TinTuyenDung.query
 
-    if ten_ntd:
-        query = query.join(NhaTuyenDung).filter(NhaTuyenDung.ten_ntd.ilike(f"%{ten_ntd}%"))
+    # chỉ lấy tin còn hoạt động
+    if only_active:
+        query = query.filter(TinTuyenDung.trang_thai == True)
+
+    # tìm kiếm theo keyword (tên công việc hoặc tên NTD)
+    if keyword:
+        query = query.join(NhaTuyenDung).filter(
+            (TinTuyenDung.ten_cong_viec.ilike(f"%{keyword}%")) |
+            (NhaTuyenDung.ten_ntd.ilike(f"%{keyword}%"))
+        )
+
+    # lọc theo danh mục
+    if ma_cn:
+        query = query.filter(TinTuyenDung.ma_cn == ma_cn)
+    if ma_loai_cv:
+        query = query.filter(TinTuyenDung.ma_loai_cv == ma_loai_cv)
+    if ma_cap_bac:
+        query = query.filter(TinTuyenDung.ma_cap_bac == ma_cap_bac)
+    if ma_muc_luong:
+        query = query.filter(TinTuyenDung.ma_muc_luong == ma_muc_luong)
+    if ma_dia_chi:
+        query = query.filter(TinTuyenDung.dia_chi_lam_viec.like(f"%{ma_dia_chi}%"))
 
     if id:
         return query.get(id)
 
-    page_size=app.config["PAGE_SIZE"]
+    page_size = app.config["PAGE_SIZE"]
     start = (page - 1) * page_size
-    query = query.slice(start, start + page_size)
+    return query.slice(start, start + page_size).all()
 
-    return query.all()
+
 
 def createHoSoXinViec(
         ten_hs,
@@ -350,4 +376,89 @@ def get_chuyen_nganh():
 
 def get_loai_cong_viec():
     return  LoaiCongViec.query.all()
+
+
+# Chuc nang cua admin
+
+# 1. Doanh thu MoMo theo tháng (group by month/year, chỉ tính giao dịch Thành công)
+def admin_doanhthu_momo_group_by_month():
+    rows = db.session.query(
+        extract('year', GiaoDich.ngay_tao).label('y'),
+        extract('month', GiaoDich.ngay_tao).label('m'),
+        func.sum(GiaoDich.so_tien).label('total')
+    ).filter(GiaoDich.trang_thai == "Thành công") \
+     .group_by('y', 'm') \
+     .order_by('y', 'm') \
+     .all()
+    return [{'year': int(y), 'month': int(m), 'total': int(total or 0)} for (y, m, total) in rows]
+
+# 2. Lượt ứng tuyển giữa các ngành theo tháng (tham số month/year)
+def admin_ungtuyen_theo_nganh(month: int, year: int):
+    rows = db.session.query(
+        ChuyenNganh.ten_cn,
+        func.count(UngTuyen.id)
+    ).join(TinTuyenDung, UngTuyen.ma_ttd == TinTuyenDung.id) \
+     .join(ChuyenNganh, TinTuyenDung.ma_cn == ChuyenNganh.id) \
+     .filter(
+        extract('month', UngTuyen.ngay_ung_tuyen) == month,
+        extract('year', UngTuyen.ngay_ung_tuyen) == year
+     ).group_by(ChuyenNganh.ten_cn).all()
+    return [{'nganh': ten, 'so_luong': int(c or 0)} for (ten, c) in rows]
+
+# 3. Danh sách toàn bộ tin (cho Admin)
+def admin_list_all_jobs():
+    return db.session.query(TinTuyenDung).join(NhaTuyenDung).order_by(TinTuyenDung.ngay_dang.desc()).all()
+
+# 4. Toggle trạng thái tin (ẩn/hiện)
+def admin_toggle_job(ma_ttd: int):
+    tin = TinTuyenDung.query.get(ma_ttd)
+    if not tin:
+        return None
+    tin.trang_thai = not bool(tin.trang_thai)
+    db.session.commit()
+    return tin.trang_thai
+
+# 5. Danh sách tài khoản (ứng viên + NTD), có thể lọc theo role nếu muốn
+def admin_list_accounts(role: str = None):
+    q = TaiKhoan.query
+    if role:
+        q = q.filter(TaiKhoan.loai_tai_khoan == role.lower())
+    return q.order_by(TaiKhoan.ngay_tao.desc()).all()
+
+# 6. Toggle khóa/mở khóa tài khoản
+def admin_toggle_account(user_id: int):
+    tk = TaiKhoan.query.get(user_id)
+    if not tk:
+        return None
+    tk.trang_thai = not bool(tk.trang_thai)
+    db.session.commit()
+    return tk.trang_thai
+
+# 7. CRUD danh mục (chung) – truyền vào model class & tên trường
+def admin_list_category(model):
+    return model.query.order_by(model.id.desc()).all()
+
+def admin_add_category(model, field_name: str, value: str):
+    obj = model()
+    setattr(obj, field_name, value.strip())
+    db.session.add(obj)
+    db.session.commit()
+    return obj
+
+def admin_update_category(model, pk: int, field_name: str, value: str):
+    obj = model.query.get(pk)
+    if not obj:
+        return None
+    setattr(obj, field_name, value.strip())
+    db.session.commit()
+    return obj
+
+def admin_delete_category(model, pk: int):
+    obj = model.query.get(pk)
+    if not obj:
+        return False
+    db.session.delete(obj)
+    db.session.commit()
+    return True
+
 

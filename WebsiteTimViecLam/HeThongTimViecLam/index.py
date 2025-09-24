@@ -20,9 +20,34 @@ def get_user(user_id):
 
 @app.route("/")
 def index():
-    ten_ntd=request.args.get('ten_ntd')
-    tintuyendung = loadTinTuyenDung(ten_ntd=ten_ntd)
-    return  render_template("index.html",ttd=tintuyendung)
+    keyword = request.args.get("keyword")
+    ma_cn = request.args.get("ma_cn", type=int)
+    ma_loai_cv = request.args.get("ma_loai_cv", type=int)
+    ma_cap_bac = request.args.get("ma_cap_bac", type=int)
+    ma_muc_luong = request.args.get("ma_muc_luong", type=int)
+    ma_dia_chi = request.args.get("ma_dia_chi")
+
+    tintuyendung = dao.loadTinTuyenDung(
+        keyword=keyword,
+        ma_cn=ma_cn,
+        ma_loai_cv=ma_loai_cv,
+        ma_cap_bac=ma_cap_bac,
+        ma_muc_luong=ma_muc_luong,
+        ma_dia_chi=ma_dia_chi,
+        only_active=True
+    )
+
+    return render_template(
+        "index.html",
+        ttd=tintuyendung,
+        chuyen_nganhs=dao.get_chuyen_nganh(),
+        loai_cvs=dao.get_loai_cong_viec(),
+        cap_bacs=dao.get_cap_bac(),
+        muc_luongs=MucLuong.query.all(),
+        dia_chis=DiaChi.query.all()
+    )
+
+
 
 @app.route("/hoso")
 @login_required
@@ -504,9 +529,146 @@ def api_thongke_tongquan():
     })
 
 
-@app.route("/admindashboard")
+# Decorator kiểm tra quyền admin
+def admin_required(fn):
+    from functools import wraps
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.loai_tai_khoan != 'admin':
+            flash("Bạn không có quyền truy cập trang quản trị!", "danger")
+            return redirect(url_for("index"))
+        return fn(*args, **kwargs)
+    return wrapper
+
+# Trang Admin Dashboard
+@app.route("/admin")
+@login_required
+@admin_required
 def admin_dashboard():
-    return render_template("admin_dashboard.html")
+    # Render trước một ít data để có bảng danh mục & bảng job/account
+    danh_sach_tin = dao.admin_list_all_jobs()
+    danh_sach_tai_khoan = dao.admin_list_accounts()
+
+    # Danh mục
+    d_diachi = dao.admin_list_category(DiaChi)
+    d_capbac = dao.admin_list_category(CapBac)
+    d_mucluong = dao.admin_list_category(MucLuong)
+    d_chuyennganh = dao.admin_list_category(ChuyenNganh)
+    d_loaicv = dao.admin_list_category(LoaiCongViec)
+
+    now = datetime.datetime.now()
+    return render_template(
+        "admin/admin_dashboard.html",
+        danh_sach_tin=danh_sach_tin,
+        danh_sach_tai_khoan=danh_sach_tai_khoan,
+        diachis=d_diachi,
+        capbacs=d_capbac,
+        mucluongs=d_mucluong,
+        chuyennganhs=d_chuyennganh,
+        loaicvs=d_loaicv,
+        current_month=now.month,
+        current_year=now.year
+    )
+
+# API: Doanh thu MoMo theo tháng (tất cả tháng có giao dịch)
+@app.route("/api/admin/doanhthu")
+@login_required
+@admin_required
+def api_admin_doanhthu():
+    data = dao.admin_doanhthu_momo_group_by_month()
+    return jsonify(data)
+
+# API: Lượt ứng tuyển theo ngành (trong tháng/year)
+@app.route("/api/admin/ungtuyen-nganh")
+@login_required
+@admin_required
+def api_admin_ungtuyen_nganh():
+    try:
+        month = int(request.args.get("month"))
+        year = int(request.args.get("year"))
+    except:
+        now = datetime.datetime.now()
+        month, year = now.month, now.year
+    data = dao.admin_ungtuyen_theo_nganh(month, year)
+    return jsonify(data)
+
+# Toggle tin (ẩn/hiện)
+@app.route("/admin/tin/<int:ma_ttd>/toggle", methods=["POST"])
+@login_required
+@admin_required
+def admin_toggle_tin(ma_ttd):
+    status = dao.admin_toggle_job(ma_ttd)
+    if status is None:
+        return jsonify({"error": "Không tìm thấy tin"}), 404
+    return jsonify({"status": "success", "trang_thai": bool(status)})
+
+# Toggle tài khoản (khóa/mở)
+@app.route("/admin/tai-khoan/<int:user_id>/toggle", methods=["POST"])
+@login_required
+@admin_required
+def admin_toggle_taikhoan(user_id):
+    status = dao.admin_toggle_account(user_id)
+    if status is None:
+        return jsonify({"error": "Không tìm thấy tài khoản"}), 404
+    return jsonify({"status": "success", "trang_thai": bool(status)})
+
+# ==== CRUD Danh mục (gom chung) ====
+# Map entity -> (Model, field_name)
+CATEGORY_MAP = {
+    "diachi": (DiaChi, "ten_dia_chi"),
+    "capbac": (CapBac, "ten_cap_bac"),
+    "mucluong": (MucLuong, "ten_muc_luong"),
+    "chuyennganh": (ChuyenNganh, "ten_cn"),
+    "loaicongviec": (LoaiCongViec, "ten_loai_cv"),
+}
+
+@app.route("/admin/category/<string:entity>/create", methods=["POST"])
+@login_required
+@admin_required
+def admin_category_create(entity):
+    model, field = CATEGORY_MAP.get(entity, (None, None))
+    if not model:
+        return jsonify({"error": "Danh mục không hợp lệ"}), 400
+    value = request.form.get("value")
+    if not value or not value.strip():
+        return jsonify({"error": "Giá trị không hợp lệ"}), 400
+    obj = dao.admin_add_category(model, field, value)
+    return jsonify({"id": obj.id, "value": getattr(obj, field)})
+
+@app.route("/admin/category/<string:entity>/<int:pk>/update", methods=["POST"])
+@login_required
+@admin_required
+def admin_category_update(entity, pk):
+    model, field = CATEGORY_MAP.get(entity, (None, None))
+    if not model:
+        return jsonify({"error": "Danh mục không hợp lệ"}), 400
+    value = request.form.get("value")
+    obj = dao.admin_update_category(model, pk, field, value)
+    if not obj:
+        return jsonify({"error": "Không tìm thấy bản ghi"}), 404
+    return jsonify({"id": obj.id, "value": getattr(obj, field)})
+
+@app.route("/admin/category/<string:entity>/<int:pk>/delete", methods=["POST"])
+@login_required
+@admin_required
+def admin_category_delete(entity, pk):
+    model, field = CATEGORY_MAP.get(entity, (None, None))
+    if not model:
+        return jsonify({"error": "Danh mục không hợp lệ"}), 400
+    ok = dao.admin_delete_category(model, pk)
+    if not ok:
+        return jsonify({"error": "Không tìm thấy bản ghi"}), 404
+    return jsonify({"status": "deleted"})
+@app.route("/admin/tin/<int:ma_ttd>")
+@login_required
+@admin_required
+def admin_view_tin(ma_ttd):
+    tin = TinTuyenDung.query.get(ma_ttd)
+    if not tin:
+        flash("Tin tuyển dụng không tồn tại!", "danger")
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin/admin_tin_detail.html", tin=tin)
 
 
 

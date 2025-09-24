@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - JobConnect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #f5f7fb; }
+    .nav-pills .nav-link.active { background: linear-gradient(45deg,#667eea,#764ba2); }
+    .badge-on { background:#28a745; }
+    .badge-off { background:#dc3545; }
+    .card { border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,.06); }
+    .table thead th { background:#f0f3ff; }
+  </style>
+</head>
+<body class="p-3 p-md-4">
+
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="m-0"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Admin Dashboard</h3>
+    <a href="/logout" class="btn btn-outline-danger">
+      <i class="fa-solid fa-right-from-bracket me-1"></i>Đăng xuất
+    </a>
+  </div>
+
+  <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+    <li class="nav-item" role="presentation"><button class="nav-link active" id="p-stats-tab" data-bs-toggle="pill" data-bs-target="#p-stats" type="button" role="tab">Thống kê</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="p-jobs-tab" data-bs-toggle="pill" data-bs-target="#p-jobs" type="button" role="tab">Quản lý tin</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="p-users-tab" data-bs-toggle="pill" data-bs-target="#p-users" type="button" role="tab">Quản lý tài khoản</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="p-cates-tab" data-bs-toggle="pill" data-bs-target="#p-cates" type="button" role="tab">Danh mục hệ thống</button></li>
+  </ul>
+
+  <div class="tab-content" id="pills-tabContent">
+
+    <!-- ========== TAB 1: THỐNG KÊ ========== -->
+    <div class="tab-pane fade show active" id="p-stats" role="tabpanel">
+      <div class="card p-3 mb-3">
+        <div class="row g-2">
+          <div class="col-sm-3">
+            <label class="form-label">Chọn tháng</label>
+            <select id="statMonth" class="form-select">
+              {% for m in range(1,13) %}
+              <option value="{{m}}" {% if m == current_month %}selected{% endif %}>Tháng {{m}}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-3">
+            <label class="form-label">Chọn năm</label>
+            <select id="statYear" class="form-select">
+              {% for y in range(2023, 2031) %}
+              <option value="{{y}}" {% if y == current_year %}selected{% endif %}>{{y}}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100" onclick="reloadCharts()"><i class="fa-solid fa-rotate me-1"></i>Xem thống kê</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="card p-3">
+            <h5 class="mb-2">Doanh thu MoMo theo tháng (toàn hệ thống)</h5>
+            <canvas id="revenueChart" height="140"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card p-3">
+            <h5 class="mb-2">Ứng tuyển theo ngành (trong tháng đã chọn)</h5>
+            <canvas id="industryChart" height="140"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TAB 2: QUẢN LÝ TIN ========== -->
+    <div class="tab-pane fade" id="p-jobs" role="tabpanel">
+      <div class="card p-3">
+        <h5 class="mb-3"><i class="fa-solid fa-clipboard-list me-1"></i>Tất cả tin tuyển dụng</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Tiêu đề</th>
+                <th>Nhà tuyển dụng</th>
+                <th>Ngày đăng</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tin in danh_sach_tin %}
+              <tr id="row-job-{{ tin.id }}">
+                <td>{{ tin.ten_cong_viec }}</td>
+                <td>{{ tin.nha_tuyen_dung.ten_ntd if tin.nha_tuyen_dung else '-' }}</td>
+                <td>{{ tin.ngay_dang.strftime("%d/%m/%Y") if tin.ngay_dang else "-" }}</td>
+                <td>
+                  {% if tin.trang_thai %}
+                    <span class="badge badge-on">Hoạt động</span>
+                  {% else %}
+                    <span class="badge badge-off">Đã ẩn</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="/admin/tin/{{ tin.id }}" class="btn btn-sm btn-outline-info">
+                    <i class="fa-solid fa-eye me-1"></i>Xem chi tiết
+                  </a>
+                  <button class="btn btn-sm btn-outline-primary" onclick="toggleTin({{ tin.id }})">
+                    <i class="fa-solid fa-toggle-on me-1"></i>Ẩn/Hiện
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TAB 3: QUẢN LÝ TÀI KHOẢN ========== -->
+    <div class="tab-pane fade" id="p-users" role="tabpanel">
+      <div class="card p-3">
+        <h5 class="mb-3"><i class="fa-solid fa-users-gear me-1"></i>Tất cả tài khoản</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Loại</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in danh_sach_tai_khoan %}
+              <tr id="row-user-{{ u.id }}">
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.loai_tai_khoan }}</td>
+                <td>
+                  {% if u.trang_thai %}
+                    <span class="badge bg-success">Đang mở</span>
+                  {% else %}
+                    <span class="badge bg-danger">Đang khóa</span>
+                  {% endif %}
+                </td>
+                <td>{{ u.ngay_tao.strftime("%d/%m/%Y") if u.ngay_tao else '-' }}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-warning" onclick="toggleUser({{ u.id }})">
+                    <i class="fa-solid fa-user-lock me-1"></i>Khóa/Mở
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TAB 4: DANH MỤC HỆ THỐNG ========== -->
+    <div class="tab-pane fade" id="p-cates" role="tabpanel">
+      <div class="row g-3">
+        {% set cates = [
+          ('Địa chỉ', 'diachi', diachis, 'ten_dia_chi'),
+          ('Cấp bậc', 'capbac', capbacs, 'ten_cap_bac'),
+          ('Mức lương', 'mucluong', mucluongs, 'ten_muc_luong'),
+          ('Chuyên ngành', 'chuyennganh', chuyennganhs, 'ten_cn'),
+          ('Loại công việc', 'loaicongviec', loaicvs, 'ten_loai_cv')
+        ] %}
+
+        {% for title, key, items, field in cates %}
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="m-0"><i class="fa-solid fa-list me-1"></i>{{ title }}</h5>
+              <button class="btn btn-sm btn-primary" onclick="openAddCate('{{ key }}')">
+                <i class="fa-solid fa-plus me-1"></i>Thêm
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle">
+                <thead><tr><th>Mục</th><th width="140">Hành động</th></tr></thead>
+                <tbody id="tb-{{ key }}">
+                  {% for it in items %}
+                  <tr id="row-{{ key }}-{{ it.id }}">
+                    <td class="val">{{ getattr(it, field) }}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-secondary" onclick="openEditCate('{{ key }}', {{ it.id }}, this)">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" onclick="deleteCate('{{ key }}', {{ it.id }})">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal thêm/sửa danh mục -->
+<div class="modal fade" id="cateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="cateForm" class="modal-content" onsubmit="return submitCate()">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cateTitle">Thêm danh mục</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cateKey">
+        <input type="hidden" id="cateId">
+        <div class="mb-2">
+          <label class="form-label">Giá trị</label>
+          <input type="text" class="form-control" id="cateValue" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-primary" type="submit">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ===== Charts =====
+  let revChart, indChart;
+  function reloadCharts() {
+    const m = document.getElementById('statMonth').value;
+    const y = document.getElementById('statYear').value;
+    fetch('/api/admin/doanhthu')
+      .then(r => r.json())
+      .then(data => {
+        const labels = data.map(d => `T${d.month}/${d.year}`);
+        const values = data.map(d => d.total);
+        if (revChart) revChart.destroy();
+        revChart = new Chart(document.getElementById('revenueChart'), {
+          type: 'bar',
+          data: { labels, datasets: [{ label: 'Doanh thu (VND)', data: values, borderWidth: 1 }] },
+          options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+      });
+
+    fetch(`/api/admin/ungtuyen-nganh?month=${m}&year=${y}`)
+      .then(r => r.json())
+      .then(data => {
+        const labels = data.map(d => d.nganh);
+        const values = data.map(d => d.so_luong);
+        if (indChart) indChart.destroy();
+        indChart = new Chart(document.getElementById('industryChart'), {
+          type: 'bar',
+          data: { labels, datasets: [{ label: 'Lượt ứng tuyển', data: values, borderWidth: 1 }] },
+          options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        });
+      });
+  }
+  document.addEventListener('DOMContentLoaded', reloadCharts);
+
+  // ===== Toggle Tin =====
+  function toggleTin(id) {
+    fetch(`/admin/tin/${id}/toggle`, { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          const row = document.getElementById(`row-job-${id}`);
+          const badge = row.querySelector('.badge');
+          if (res.trang_thai) {
+            badge.className = 'badge badge-on';
+            badge.textContent = 'Hoạt động';
+          } else {
+            badge.className = 'badge badge-off';
+            badge.textContent = 'Đã ẩn';
+          }
+        } else { alert(res.error || 'Lỗi'); }
+      })
+      .catch(_ => alert('Lỗi máy chủ!'));
+  }
+
+  // ===== Toggle User =====
+  function toggleUser(id) {
+    fetch(`/admin/tai-khoan/${id}/toggle`, { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          const row = document.getElementById(`row-user-${id}`);
+          const badge = row.querySelector('.badge');
+          if (res.trang_thai) {
+            badge.className = 'badge bg-success';
+            badge.textContent = 'Đang mở';
+          } else {
+            badge.className = 'badge bg-danger';
+            badge.textContent = 'Đang khóa';
+          }
+        } else { alert(res.error || 'Lỗi'); }
+      })
+      .catch(_ => alert('Lỗi máy chủ!'));
+  }
+
+  // ===== CRUD Danh mục =====
+  const cateModal = new bootstrap.Modal(document.getElementById('cateModal'));
+  function openAddCate(key) {
+    document.getElementById('cateTitle').textContent = 'Thêm danh mục';
+    document.getElementById('cateKey').value = key;
+    document.getElementById('cateId').value = '';
+    document.getElementById('cateValue').value = '';
+    cateModal.show();
+  }
+  function openEditCate(key, id, btn) {
+    const row = document.getElementById(`row-${key}-${id}`);
+    const val = row.querySelector('.val').textContent.trim();
+    document.getElementById('cateTitle').textContent = 'Sửa danh mục';
+    document.getElementById('cateKey').value = key;
+    document.getElementById('cateId').value = id;
+    document.getElementById('cateValue').value = val;
+    cateModal.show();
+  }
+  function submitCate() {
+    const key = document.getElementById('cateKey').value;
+    const id = document.getElementById('cateId').value;
+    const value = document.getElementById('cateValue').value.trim();
+    if (!value) return false;
+    const url = id ? `/admin/category/${key}/${id}/update` : `/admin/category/${key}/create`;
+    const form = new FormData(); form.append('value', value);
+    fetch(url, { method: 'POST', body: form })
+      .then(r => r.json())
+      .then(res => {
+        if (res.error) { alert(res.error); return; }
+        if (!id) {
+          const tbody = document.getElementById(`tb-${key}`);
+          const tr = document.createElement('tr');
+          tr.id = `row-${key}-${res.id}`;
+          tr.innerHTML = `
+            <td class="val">${res.value}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-secondary" onclick="openEditCate('${key}', ${res.id}, this)">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteCate('${key}', ${res.id})">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>`;
+          tbody.prepend(tr);
+        } else {
+          const row = document.getElementById(`row-${key}-${res.id}`);
+          row.querySelector('.val').textContent = res.value;
+        }
+        cateModal.hide();
+      })
+      .catch(_ => alert('Lỗi máy chủ!'));
+    return false;
+  }
+  function deleteCate(key, id) {
+    if (!confirm('Xóa danh mục này?')) return;
+    fetch(`/admin/category/${key}/${id}/delete`, { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'deleted') {
+          const row = document.getElementById(`row-${key}-${id}`); row.remove();
+        } else { alert(res.error || 'Không xóa được'); }
+      })
+      .catch(_ => alert('Lỗi máy chủ!'));
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chi tiết tin tuyển dụng</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .main-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 2rem 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 200%;
+      background: rgba(255, 255, 255, 0.1);
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .page-header .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .job-card {
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .job-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+
+    .job-header {
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      color: white;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .job-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #ffd700, #ff6b6b, #4ecdc4, #45b7d1);
+    }
+
+    .job-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .company-name {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .job-content {
+      padding: 2rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .info-item {
+      background: linear-gradient(135deg, #f8f9ff, #e8f0fe);
+      padding: 1.5rem;
+      border-radius: 16px;
+      border: 1px solid rgba(102, 126, 234, 0.1);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+    }
+
+    .info-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #4c63d2;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-value {
+      font-size: 1.1rem;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .section-card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+
+    .section-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid;
+      border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+    }
+
+    .section-content {
+      color: #555;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .section-content p {
+      margin-bottom: 1rem;
+    }
+
+    .section-content ul {
+      padding-left: 1.5rem;
+    }
+
+    .section-content li {
+      margin-bottom: 0.5rem;
+    }
+
+    .back-button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      position: sticky;
+      bottom: 2rem;
+      z-index: 100;
+    }
+
+    .back-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+      color: white;
+      text-decoration: none;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #00b894, #00cec9);
+      color: white;
+      margin-top: 1rem;
+    }
+
+    .icon {
+      font-size: 1.1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main-container {
+        padding: 1rem;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .job-title {
+        font-size: 1.5rem;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .job-content, .job-header {
+        padding: 1.5rem;
+      }
+
+      .section-card {
+        padding: 1.5rem;
+      }
+    }
+
+    /* Animation */
+    .fade-in {
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .fade-in:nth-child(1) { animation-delay: 0.1s; }
+    .fade-in:nth-child(2) { animation-delay: 0.2s; }
+    .fade-in:nth-child(3) { animation-delay: 0.3s; }
+    .fade-in:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+      <h1><i class="fas fa-briefcase"></i> Chi tiết tin tuyển dụng</h1>
+      <p class="subtitle">Thông tin đầy đủ về cơ hội nghề nghiệp</p>
+    </div>
+
+    <!-- Job Card -->
+    <div class="job-card fade-in">
+      <!-- Job Header -->
+      <div class="job-header">
+        <h2 class="job-title">{{ tin.ten_cong_viec }}</h2>
+        <div class="company-name">
+          <i class="fas fa-building"></i>
+          {{ tin.nha_tuyen_dung.ten_ntd if tin.nha_tuyen_dung else 'Chưa có thông tin' }}
+        </div>
+        <div class="status-badge">
+          <i class="fas fa-check-circle"></i>
+          Đang tuyển dụng
+        </div>
+      </div>
+
+      <!-- Job Content -->
+      <div class="job-content">
+        <!-- Info Grid -->
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-map-marker-alt icon"></i>
+              Địa chỉ làm việc
+            </div>
+            <div class="info-value">{{ tin.dia_chi_lam_viec }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-dollar-sign icon"></i>
+              Mức lương
+            </div>
+            <div class="info-value">{{ tin.muc_luong.ten_muc_luong if tin.muc_luong else 'Thỏa thuận' }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-layer-group icon"></i>
+              Cấp bậc
+            </div>
+            <div class="info-value">{{ tin.cap_bac.ten_cap_bac if tin.cap_bac else 'Chưa xác định' }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-briefcase icon"></i>
+              Loại công việc
+            </div>
+            <div class="info-value">{{ tin.loai_cv.ten_loai_cv if tin.loai_cv else 'Chưa xác định' }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-users icon"></i>
+              Số lượng tuyển
+            </div>
+            <div class="info-value">{{ tin.so_luong or 'Không giới hạn' }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-venus-mars icon"></i>
+              Yêu cầu giới tính
+            </div>
+            <div class="info-value">{{ tin.gioi_tinh_yc or 'Không yêu cầu' }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-calendar-plus icon"></i>
+              Ngày đăng
+            </div>
+            <div class="info-value">{{ tin.ngay_dang.strftime("%d/%m/%Y") if tin.ngay_dang else 'Chưa có' }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-calendar-times icon"></i>
+              Hạn nộp hồ sơ
+            </div>
+            <div class="info-value">{{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else 'Chưa có' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Description Section -->
+    <div class="section-card fade-in">
+      <h3 class="section-title">
+        <i class="fas fa-clipboard-list"></i>
+        Mô tả công việc
+      </h3>
+      <div class="section-content">
+        {{ tin.mo_ta|safe }}
+      </div>
+    </div>
+
+    <!-- Job Requirements Section -->
+    <div class="section-card fade-in">
+      <h3 class="section-title">
+        <i class="fas fa-tasks"></i>
+        Yêu cầu công việc
+      </h3>
+      <div class="section-content">
+        {{ tin.yeu_cau|safe }}
+      </div>
+    </div>
+
+    <!-- Benefits Section -->
+    <div class="section-card fade-in">
+      <h3 class="section-title">
+        <i class="fas fa-gift"></i>
+        Quyền lợi
+      </h3>
+      <div class="section-content">
+        {{ tin.quyen_loi|safe }}
+      </div>
+    </div>
+
+    <!-- Back Button -->
+    <a href="{{ url_for('admin_dashboard') }}" class="back-button fade-in">
+      <i class="fas fa-arrow-left"></i>
+      Quay lại Dashboard
+    </a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

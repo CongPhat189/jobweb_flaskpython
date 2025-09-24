@@ -16,7 +16,8 @@ db=SQLAlchemy(app=app)
 Login=LoginManager(app=app)
 Login.login_view = "login_process"
 Login.login_message = u"⚠️ Bạn cần đăng nhập để tiếp tục."
-Login.login_message_category = "warning"  # có thể là success, danger, info, warning
+Login.login_message_category = "warning"
+app.jinja_env.globals.update(getattr=getattr)
 
 
 cloudinary.config(
