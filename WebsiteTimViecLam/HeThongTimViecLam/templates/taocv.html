@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tạo CV - JobConnect</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {background:#f5f8fb;font-family:Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .navbar {background: white; box-shadow: 0 2px 6px rgba(15,23,42,0.06)}
+    .hero {padding:56px 0}
+    .card-ghost {border-radius:12px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+    .form-card {padding:20px}
+    .btn-create {background:#10b981;color:white}
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="#"><strong style="color:#2563eb">Open Job</strong></a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2>Tạo Hồ Sơ Xin Việc</h2>
+      <p class="text-muted">Nhập đầy đủ thông tin để tạo CV hoàn chỉnh</p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card card-ghost form-card">
+          <form action="/taocv" method="POST" enctype="multipart/form-data">
+
+            <h6 class="mb-3">Thông tin cá nhân</h6>
+            <div class="mb-2">
+              <label class="form-label small">Họ và tên</label>
+              <input class="form-control" name="full_name" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Chức danh</label>
+              <input class="form-control" name="title" placeholder="Ví dụ: Backend Developer">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Địa chỉ</label>
+              <input class="form-control" name="address">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Số điện thoại</label>
+              <input class="form-control" name="phone">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Email</label>
+              <input type="email" class="form-control" name="email">
+            </div>
+
+            <h6 class="mb-3">Giới thiệu bản thân</h6>
+            <textarea class="form-control mb-3" name="summary" rows="3"></textarea>
+
+            <h6 class="mb-3">Kỹ năng</h6>
+            <div class="mb-2">
+              <label class="form-label small">Programming Languages</label>
+              <textarea class="form-control" name="skills_programming" rows="2"></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small">Frontend</label>
+              <textarea class="form-control" name="skills_frontend" rows="2"></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small">Backend</label>
+              <textarea class="form-control" name="skills_backend" rows="2"></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small">Deployment</label>
+              <textarea class="form-control" name="skills_deployment" rows="2"></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label small">Database</label>
+              <textarea class="form-control" name="skills_database" rows="2"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small">Version Control</label>
+              <textarea class="form-control" name="skills_version_control" rows="2"></textarea>
+            </div>
+
+            <h6 class="mb-3">Học vấn</h6>
+            <textarea class="form-control mb-3" name="education" rows="2"></textarea>
+
+            <h6 class="mb-3">Dự án</h6>
+            <div id="projects">
+              <div class="mb-3">
+                <input class="form-control mb-2" name="project_title[]" placeholder="Tên dự án">
+                <textarea class="form-control mb-2" name="project_desc[]" rows="2" placeholder="Mô tả dự án"></textarea>
+                <input class="form-control mb-2" name="project_tech[]" placeholder="Công nghệ sử dụng">
+                <input class="form-control" name="project_link[]" placeholder="Github/Website">
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-outline-secondary mb-3" onclick="addProject()">➕ Thêm dự án</button>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-create">Tạo CV</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  function addProject() {
+    const container = document.getElementById("projects");
+    const div = document.createElement("div");
+    div.classList.add("mb-3");
+    div.innerHTML = `
+      <input class="form-control mb-2" name="project_title[]" placeholder="Tên dự án">
+      <textarea class="form-control mb-2" name="project_desc[]" rows="2" placeholder="Mô tả dự án"></textarea>
+      <input class="form-control mb-2" name="project_tech[]" placeholder="Công nghệ sử dụng">
+      <input class="form-control" name="project_link[]" placeholder="Github/Website">
+    `;
+    container.appendChild(div);
+  }
+</script>
+
+</body>
+</html>

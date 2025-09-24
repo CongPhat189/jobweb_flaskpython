@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobConnect - Tìm Việc Làm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(255, 255, 255, 1) 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem;
+        }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #4285f4; }
+
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { text-decoration: none; color: #333; font-weight: 500; transition: color .3s; }
+        .nav-links a:hover { color: #4285f4; }
+
+        .auth-buttons { display: flex; gap: 1rem; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: .5rem; background: #f8f9ff; padding: .25rem .75rem; border-radius: 20px; border: 1px solid #e0e0e0; }
+        .user-info .username { font-size: .9rem; color: #333; }
+
+        .btn { padding: .5rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; text-decoration: none; transition: all .3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(66, 133, 244, .3); }
+        .btn-outline { background: transparent; color: #4285f4; border: 1px solid #4285f4; }
+        .btn-primary { background: #4285f4; color: #fff; }
+        .btn-danger { background: #ea4335; color: #fff; }
+        .btn-danger:hover { background: #c62828; }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white; padding: 4rem 2rem; text-align: center;
+        }
+        .hero-container { max-width: 980px; margin: 0 auto; }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; font-weight: 600; }
+        .hero p { font-size: 1.1rem; margin-bottom: 1.2rem; opacity: .95; }
+
+        /* Search & Filters (đẹp hơn) */
+        .search-box {
+            background: #fff; border-radius: 14px;
+            padding: 1rem; margin: 1rem auto 0; box-shadow: 0 14px 40px rgba(0,0,0,.18);
+            display: grid; grid-template-columns: 1fr auto; gap: .75rem;
+        }
+        .search-left {
+            display: flex; align-items: center; gap: .6rem;
+            border: 1px solid #e6e8f0; border-radius: 10px; padding: .55rem .75rem;
+            background: #fafbff;
+        }
+        .search-left svg { width: 18px; height: 18px; color: #4285f4; opacity: .9; }
+        .search-input { flex: 1; border: none; outline: none; font-size: 1rem; background: transparent; }
+
+        .filters {
+            grid-column: 1 / -1;
+            display: grid; gap: .5rem;
+            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+        }
+        .filter-select {
+            padding: .55rem .75rem; border: 1px solid #e6e8f0; border-radius: 10px;
+            font-size: .95rem; background: #f7f9ff; transition: border-color .2s, box-shadow .2s;
+        }
+        .filter-select:hover, .filter-select:focus {
+            border-color: #4285f4; box-shadow: 0 0 0 3px rgba(66,133,244,.12); outline: none;
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, #4285f4, #34a853); color: #fff;
+            border: none; padding: .7rem 1.5rem; border-radius: 10px; font-weight: 700;
+            align-self: start; transition: transform .2s;
+        }
+        .btn-search:hover { transform: translateY(-1px); opacity: .95; }
+
+        /* Jobs Section */
+        .jobs-section { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; }
+        .section-header { text-align: center; margin-bottom: 2.2rem; }
+        .section-title { font-size: 2rem; color: #333; margin-bottom: .5rem; }
+        .section-subtitle { color: #666; font-size: 1.05rem; }
+
+        .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; }
+        .job-card {
+            background: #fff; border-radius: 12px; padding: 2rem; border: 1px solid #f0f0f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,.08); transition: all .25s;
+        }
+        .job-card:hover { transform: translateY(-5px); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
+
+        .job-header { display: flex; align-items: center; margin-bottom: 1rem; }
+        .company-logo {
+            width: 50px; height: 50px; border-radius: 8px;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; margin-right: 1rem; font-size: 1.2rem;
+        }
+        .job-info h3 { font-size: 1.25rem; color: #333; margin-bottom: .2rem; }
+        .company-name { color: #667085; font-size: .95rem; }
+
+        .job-details { margin: 1.2rem 0; }
+        .detail-item { display: flex; align-items: center; margin-bottom: .7rem; color: #555; }
+        .detail-icon { width: 16px; height: 16px; margin-right: .75rem; opacity: .75; }
+        .salary { color: #34a853; font-weight: 600; }
+        .deadline { color: #ea4335; font-weight: 500; }
+
+        .apply-section { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px solid #f0f0f0; }
+        .file-input-wrapper { position: relative; margin-bottom: 1rem; }
+        .file-input {
+            width: 100%; padding: .75rem; border: 2px dashed #ddd; border-radius: 8px;
+            background: #fafafa; text-align: center; cursor: pointer; transition: all .25s;
+        }
+        .file-input:hover { border-color: #4285f4; background: #f8f9ff; }
+        .file-input input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+
+        .apply-btn {
+            width: 100%; background: linear-gradient(135deg, #4285f4, #34a853); color: #fff;
+            border: none; padding: .875rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all .25s;
+            display: inline-block; text-align: center; text-decoration: none;
+        }
+        .apply-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(66,133,244,.35); }
+
+        .no-jobs { text-align: center; padding: 4rem 2rem; color: #666; }
+        .no-jobs-icon { font-size: 4rem; margin-bottom: 1rem; opacity: .5; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">OpenJob</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">Trang chủ</a></li>
+                    <li><a href="#">Việc làm</a></li>
+                    <li><a href="#">Công ty</a></li>
+                    <li><a href="/taocv">Tạo CV</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="/hoso">Hồ sơ</a></li>
+                </ul>
+            </nav>
+
+            {% if current_user.is_authenticated %}
+            <div class="auth-buttons">
+                <div class="user-info">
+                    <a href="/mycv"><span class="username">Chào <strong>{{ current_user.ten_uv }}</strong></span></a>
+                </div>
+                <a href="/ungvien/applied_jobs" class="btn btn-outline">📄 Việc đã ứng tuyển</a>
+                <a href="/logout" class="btn btn-danger">Đăng xuất</a>
+            </div>
+            {% else %}
+            <div class="auth-buttons">
+                <a href="/login" class="btn btn-outline">Đăng nhập</a>
+                <a href="/register" class="btn btn-primary">Đăng ký</a>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1>Tìm Việc Làm<br><span style="color:#ffd700;">Mơ Ước Của Bạn</span></h1>
+            <p>Kết nối với hàng ngàn cơ hội việc làm từ các công ty hàng đầu.<br>Tạo CV chuyên nghiệp và nâng tầm sự nghiệp ngay hôm nay.</p>
+
+            <!-- NEW: Search + Filters -->
+            <form method="get" action="{{ url_for('index') }}" class="search-box">
+                <!-- Ô tìm kiếm theo công việc / NTD -->
+                <div class="search-left">
+                    <!-- search icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-4.35-4.35M10 18a8 8 0 110-16 8 8 0 010 16z"/>
+                    </svg>
+                    <input type="text" class="search-input" name="keyword"
+                           placeholder="Tìm theo công việc hoặc nhà tuyển dụng..."
+                           value="{{ request.args.get('keyword','') }}">
+                </div>
+
+                <!-- Nút tìm -->
+                <button type="submit" class="btn-search">Tìm kiếm</button>
+
+                <!-- Bộ lọc danh mục -->
+                <div class="filters">
+                    <!-- Chuyên ngành -->
+                    <select name="ma_cn" class="filter-select">
+                        <option value="">Chuyên ngành</option>
+                        {% for cn in chuyen_nganhs %}
+                        <option value="{{ cn.id }}" {% if request.args.get('ma_cn')|int == cn.id %}selected{% endif %}>
+                            {{ cn.ten_cn }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Loại công việc -->
+                    <select name="ma_loai_cv" class="filter-select">
+                        <option value="">Loại công việc</option>
+                        {% for loai in loai_cvs %}
+                        <option value="{{ loai.id }}" {% if request.args.get('ma_loai_cv')|int == loai.id %}selected{% endif %}>
+                            {{ loai.ten_loai_cv }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Cấp bậc -->
+                    <select name="ma_cap_bac" class="filter-select">
+                        <option value="">Cấp bậc</option>
+                        {% for cb in cap_bacs %}
+                        <option value="{{ cb.id }}" {% if request.args.get('ma_cap_bac')|int == cb.id %}selected{% endif %}>
+                            {{ cb.ten_cap_bac }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Mức lương -->
+                    <select name="ma_muc_luong" class="filter-select">
+                        <option value="">Mức lương</option>
+                        {% for ml in muc_luongs %}
+                        <option value="{{ ml.id }}" {% if request.args.get('ma_muc_luong')|int == ml.id %}selected{% endif %}>
+                            {{ ml.ten_muc_luong }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Địa chỉ (gửi tên để lọc like) -->
+                    <select name="ma_dia_chi" class="filter-select">
+                        <option value="">Địa chỉ</option>
+                        {% for dc in dia_chis %}
+                        <option value="{{ dc.ten_dia_chi }}" {% if request.args.get('ma_dia_chi') == dc.ten_dia_chi %}selected{% endif %}>
+                            {{ dc.ten_dia_chi }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Jobs Section -->
+    <section class="jobs-section">
+        <div class="section-header">
+            <h2 class="section-title">Việc Làm Nổi Bật</h2>
+            <p class="section-subtitle">Khám phá những cơ hội nghề nghiệp tốt nhất dành cho bạn</p>
+        </div>
+
+        {% if ttd %}
+        <div class="jobs-grid">
+            {% for tin in ttd %}
+            <div class="job-card">
+                <div class="job-header">
+                    <div class="company-logo">
+                        {{ tin.nha_tuyen_dung.ten_ntd[0] if tin.nha_tuyen_dung and tin.nha_tuyen_dung.ten_ntd else "C" }}
+                    </div>
+                    <div class="job-info">
+                        <h3>{{ tin.ten_cong_viec }}</h3>
+                        <div class="company-name">{{ tin.nha_tuyen_dung.ten_ntd if tin.nha_tuyen_dung else "Nhà tuyển dụng" }}</div>
+                    </div>
+                </div>
+
+                <div class="job-details">
+                    <div class="detail-item">
+                        <svg class="detail-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>{{ tin.dia_chi_lam_viec or "Địa chỉ không rõ" }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <svg class="detail-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"/>
+                        </svg>
+                        <span class="salary">{{ tin.muc_luong.ten_muc_luong if tin.muc_luong else "Thỏa thuận" }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <svg class="detail-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                        </svg>
+                        <span class="deadline">Hạn nộp: {{ tin.han_nop.strftime("%d/%m/%Y") if tin.han_nop else "Không có" }}</span>
+                    </div>
+                </div>
+
+                <div class="apply-section">
+                    <form action="{{ url_for('apply', ma_ttd=tin.id) }}" method="post" enctype="multipart/form-data">
+                        <div class="file-input-wrapper">
+                            <div class="file-input">
+                                <input type="file" name="cv" accept=".pdf" required> 📎 Chọn CV (PDF)
+                            </div>
+                        </div>
+                        <a href="{{ url_for('ung_tuyen', ma_ttd=tin.id) }}" class="apply-btn">🚀 Ứng tuyển ngay</a>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-jobs">
+            <div class="no-jobs-icon">📋</div>
+            <h3>Chưa có tin tuyển dụng nào</h3>
+            <p>Vui lòng quay lại sau hoặc thử tìm kiếm với từ khóa khác</p>
+        </div>
+        {% endif %}
+    </section>
+</body>
+</html>

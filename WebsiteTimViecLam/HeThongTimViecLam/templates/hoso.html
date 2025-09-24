@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Xin Việc - JobConnect</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(255, 255, 255, 1) 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .header {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #4285f4; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { text-decoration: none; color: #333; font-weight: 500; }
+        .nav-links a:hover { color: #4285f4; }
+        .section-header { text-align: center; margin-bottom: 2rem; }
+        .section-title { font-size: 2rem; color: #333; margin-bottom: 0.5rem; }
+        .section-subtitle { color: #666; font-size: 1.1rem; }
+        .cv-section { max-width: 1200px; margin: 3rem auto; padding: 2rem; }
+        .cv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; }
+        .cv-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+        }
+        .cv-title { font-size: 1.4rem; color: #4285f4; margin-bottom: 0.5rem; font-weight: 600; }
+        .cv-detail { margin-bottom: 0.5rem; color: #555; font-size: 0.95rem; }
+        .cv-label { font-weight: 600; color: #333; }
+        .cv-actions { margin-top: 1rem; text-align: right; }
+        .btn {
+            display: inline-block; padding: 0.5rem 1.2rem; border-radius: 6px;
+            text-decoration: none; font-size: 0.9rem; font-weight: 500; margin-left: 0.3rem;
+        }
+        .btn-view { background: #4285f4; color: white; }
+        .btn-edit { background: #10b981; color: white; }
+        .btn-view:hover { background: #3367d6; }
+        .btn-edit:hover { background: #059669; }
+        .no-cv { text-align: center; padding: 4rem 2rem; color: #666; }
+        .no-cv-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">Open Job</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">Trang chủ</a></li>
+                    <li><a href="/hoso">Hồ sơ của tôi</a></li>
+                    <li><a href="/ungvien/applied_jobs">Việc đã ứng tuyển</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CV Section -->
+    <section class="cv-section">
+        <div class="section-header">
+            <h2 class="section-title">📄 Hồ Sơ Xin Việc Của Bạn</h2>
+            <p class="section-subtitle">Quản lý và theo dõi các CV bạn đã tạo</p>
+        </div>
+
+        {% if ho_sos and ho_sos|length > 0 %}
+        <div class="cv-grid">
+            {% for hs in ho_sos %}
+            {% set skills = hs.ky_nang|from_json %}
+            {% set projects = hs.projects|from_json %}
+            <div class="cv-card">
+                <h3 class="cv-title">{{ hs.ten_hs }}</h3>
+                <p class="cv-detail"><span class="cv-label">Chức danh:</span> {{ hs.title }}</p>
+                <p class="cv-detail"><span class="cv-label">Địa chỉ:</span> {{ hs.address }}</p>
+                <p class="cv-detail"><span class="cv-label">Số điện thoại:</span> {{ hs.phone }}</p>
+                <p class="cv-detail"><span class="cv-label">Email:</span> {{ hs.email }}</p>
+                <p class="cv-detail"><span class="cv-label">Giới thiệu:</span> {{ hs.muc_tieu_nghe_nghiep }}</p>
+
+                <p class="cv-detail"><span class="cv-label">Kỹ năng:</span></p>
+                <ul>
+                    {% for k, v in skills.items() %}
+                    <li>{{ k }}: {{ v }}</li>
+                    {% endfor %}
+                </ul>
+
+                <p class="cv-detail"><span class="cv-label">Học vấn:</span> {{ hs.hoc_van }}</p>
+                <p class="cv-detail"><span class="cv-label">Kinh nghiệm:</span> {{ hs.kinh_nghiem }}</p>
+                <p class="cv-detail"><span class="cv-label">Giải thưởng:</span> {{ hs.giai_thuong }}</p>
+
+                <p class="cv-detail"><span class="cv-label">Dự án:</span></p>
+                <ul>
+                    {% for p in projects %}
+                    <li>
+                        <b>{{ p.name }}</b> - {{ p.desc }}
+                        <i>{{ p.tech }}</i>
+                        {% if p.github %}<a href="{{ p.github }}" target="_blank">🔗 Link</a>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="cv-actions">
+                    {% if hs.file_cv %}
+                        <a href="{{ hs.file_cv }}" target="_blank" class="btn btn-view">📂 Tải CV</a>
+                    {% else %}
+                        <span class="text-muted">Chưa upload CV</span>
+                    {% endif %}
+                    <a href="/suacv/{{ hs.id }}" class="btn btn-edit">✏️ Sửa CV</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-cv">
+            <div class="no-cv-icon">📂</div>
+            <h3>Bạn chưa có hồ sơ xin việc nào</h3>
+            <p><a href="/taocv" class="btn btn-view">➕ Tạo hồ sơ ngay</a></p>
+        </div>
+        {% endif %}
+    </section>
+</body>
+</html>
