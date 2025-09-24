@@ -1,3 +1,4 @@
+import json
 import uuid
 
 from WebsiteTimViecLam.HeThongTimViecLam.models import *
@@ -9,6 +10,15 @@ import cloudinary.uploader
 from datetime import datetime
 from sqlalchemy import func, extract
 
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from pdfrw import PdfReader, PdfWriter, PageMerge
+from reportlab.lib import colors
+import io
+import os
 
 
 def auth_user(username, password, role=None):
@@ -123,19 +133,15 @@ def createHoSoXinViec(
         hoc_van=None,
         giai_thuong=None
 ):
-    """
-    Hàm tạo hồ sơ xin việc cho ứng viên hiện tại (current_user).
-    Trả về HoSoXinViec vừa tạo nếu thành công, None nếu thất bại.
-    """
+
     try:
-        # Kiểm tra đăng nhập
         if not current_user.is_authenticated:
             return None
 
-        # Tạo hồ sơ mới
+        # 1. Lưu hồ sơ vào DB
         hoso = HoSoXinViec(
             ten_hs=ten_hs.strip(),
-            ma_uv=current_user.id,  # Gán theo user hiện tại
+            ma_uv=current_user.id,
             ma_cn=ma_cn,
             ma_loai_cv=ma_loai_cv,
             ma_cap_bac=ma_cap_bac,
@@ -149,95 +155,290 @@ def createHoSoXinViec(
         db.session.add(hoso)
         db.session.commit()
 
+        # 2. Tạo file PDF
+        styles = getSampleStyleSheet()
+        story = []
+
+        story.append(Paragraph(f"<b>HỒ SƠ XIN VIỆC</b>", styles['Title']))
+        story.append(Spacer(1, 20))
+
+        fields = [
+            ("Tên hồ sơ", ten_hs),
+            ("Ngành nghề", str(ma_cn) if ma_cn else "Chưa có"),
+            ("Loại công việc", str(ma_loai_cv) if ma_loai_cv else "Chưa có"),
+            ("Cấp bậc", str(ma_cap_bac) if ma_cap_bac else "Chưa có"),
+            ("Mục tiêu nghề nghiệp", muc_tieu),
+            ("Kinh nghiệm", kinh_nghiem),
+            ("Kỹ năng", ky_nang),
+            ("Học vấn", hoc_van),
+            ("Giải thưởng", giai_thuong),
+        ]
+
+        for label, value in fields:
+            story.append(Paragraph(f"<b>{label}:</b> {value if value else '---'}", styles['Normal']))
+            story.append(Spacer(1, 12))
+
+        # Đảm bảo thư mục tồn tại
+        pdf_dir = os.path.join("static", "cv")
+        os.makedirs(pdf_dir, exist_ok=True)
+
+        pdf_path = os.path.join(pdf_dir, f"hoso_{hoso.id}.pdf")
+
+        doc = SimpleDocTemplate(pdf_path, pagesize=A4)
+        doc.build(story)
+
+        # 3. Cập nhật lại DB để lưu đường dẫn file PDF
+        hoso.file_cv = pdf_path
+        db.session.commit()
+        print(hoso.file_cv)
+
         return hoso
+
     except Exception as ex:
         db.session.rollback()
         print(f"Lỗi khi tạo hồ sơ xin việc: {ex}")
         return None
 
+
+
+def create_cv(data, filename="CV_rebuild.pdf"):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+
+    # Custom styles (đổi tên tránh trùng)
+    styles.add(ParagraphStyle(name="MyName", fontSize=18, leading=22, textColor=colors.HexColor("#000000"),
+                              spaceAfter=6, fontName="Helvetica-Bold"))
+    styles.add(ParagraphStyle(name="MyTitle", fontSize=12, leading=14, textColor=colors.HexColor("#444444"),
+                              spaceAfter=12, fontName="Helvetica"))
+    styles.add(ParagraphStyle(name="Heading", fontSize=12, leading=14, textColor=colors.HexColor("#004080"),
+                              spaceBefore=12, spaceAfter=6, fontName="Helvetica-Bold"))
+    styles.add(ParagraphStyle(name="NormalSmall", fontSize=10, leading=12))
+
+    elements = []
+
+    # Header: ảnh + tên
+    if data.get("avatar"):
+        img = Image(data["avatar"], width=100, height=120)
+    else:
+        img = Image("https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png", width=100, height=120)
+
+    header_table = Table([
+        [img, Paragraph(f"<b>{data['name']}</b>", styles["MyName"])]
+    ], colWidths=[110, 400])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP')
+    ]))
+    elements.append(header_table)
+    elements.append(Paragraph(data["title"], styles["MyTitle"]))
+
+    # Contact
+    elements.append(Paragraph("Contact:", styles["Heading"]))
+    contact_info = f"""
+    Address: {data['address']}<br/>
+    Phone: {data['phone']}<br/>
+    Email: {data['email']}
+    """
+    elements.append(Paragraph(contact_info, styles["NormalSmall"]))
+
+    # Summary
+    elements.append(Paragraph("Professional Summary", styles["Heading"]))
+    elements.append(Paragraph(data["summary"], styles["Normal"]))
+
+    # Skills
+    elements.append(Paragraph("Skills", styles["Heading"]))
+    skill_rows = [[Paragraph(f"<b>{k}</b>", styles["NormalSmall"]),
+                   Paragraph(v, styles["NormalSmall"])] for k,v in data["skills"].items()]
+    skill_table = Table(skill_rows, colWidths=[120, 350])
+    skill_table.setStyle(TableStyle([
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4)
+    ]))
+    elements.append(skill_table)
+
+    # Education
+    elements.append(Paragraph("Education", styles["Heading"]))
+    elements.append(Paragraph(f"{data['education']['school']} - {data['education']['major']} ({data['education']['time']})",
+                              styles["NormalSmall"]))
+
+    # Projects
+    elements.append(Paragraph("Projects", styles["Heading"]))
+    for prj in data["projects"]:
+        elements.append(Paragraph(f"{prj['name']}", styles["NormalSmall"]))
+        elements.append(Paragraph(f"Description: {prj['desc']}", styles["NormalSmall"]))
+        elements.append(Paragraph(f"Technology: {prj['tech']}", styles["NormalSmall"]))
+        elements.append(Paragraph(f"Github: <u>{prj['github']}</u>", styles["NormalSmall"]))
+        elements.append(Spacer(1, 6))
+
+    doc.build(elements)
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+    return pdf_bytes
+
 def tao_cv(
-        ten_hs,
-        ma_uv,
-        ma_cn=None,
-        ma_loai_cv=None,
-        ma_cap_bac=None,
-        muc_tieu=None,
-        kinh_nghiem=None,
-        ky_nang=None,
-        hoc_van=None,
-        giai_thuong=None,
-        file=None
+    ten_uv,
+    dia_chi,
+    phone,
+    email,
+    title=None,
+    muc_tieu=None,
+    ky_nang=None,
+    hoc_van=None,
+    giai_thuong=None,
+    major=None,
+    projects=None
 ):
-    """
-    Tạo hồ sơ xin việc (CV) cho ứng viên.
-    Upload file CV (PDF) lên Cloudinary, sau đó lưu vào DB.
-    Trả về object HoSoXinViec đã được lưu.
-    """
+    data = {
+        "avatar": None,
+        "name": ten_uv,
+        "title": title or "",
+        "address": dia_chi,
+        "phone": phone,
+        "email": email,
+        "summary": muc_tieu or "",
+        "skills": ky_nang if isinstance(ky_nang, dict) else {"Kỹ năng": ky_nang or "Chưa cập nhật"},
+        "education": {
+            "school": hoc_van or "Chưa cập nhật",
+            "major": major if major else "N/A",
+            "time": "Đang cập nhật"
+        },
+        "projects": projects if projects else []
+    }
+
+    # thêm giải thưởng nếu có
+    data["projects"].append({
+        "name": "Giải thưởng",
+        "time": "",
+        "desc": giai_thuong or "Chưa có",
+        "tech": "",
+        "github": ""
+    })
+
+    file_bytes = create_cv(data)
     file_url = None
-    if file:
+    if file_bytes:
         upload_result = cloudinary.uploader.upload(
-            file,
+            io.BytesIO(file_bytes),
             folder="cv_uploads",
-            resource_type="raw"  # cho phép PDF/Word
+            resource_type="raw"
         )
         file_url = upload_result.get("secure_url")
 
+    # nếu cần lưu DB thì mở lại phần này
     hs = HoSoXinViec(
-        ten_hs=ten_hs,
-        ma_uv=ma_uv,
-        ma_cn=ma_cn,
-        ma_loai_cv=ma_loai_cv,
-        ma_cap_bac=ma_cap_bac,
+        ten_hs=ten_uv,
+        ma_uv=current_user.id,
         muc_tieu_nghe_nghiep=muc_tieu,
-        kinh_nghiem=kinh_nghiem,
-        ky_nang=ky_nang,
+        ky_nang=json.dumps(ky_nang),
         hoc_van=hoc_van,
-        giai_thuong=giai_thuong,
         file_cv=file_url
     )
-
     db.session.add(hs)
+    print(file_url)
     db.session.commit()
-    return hs
+    return file_url
 
-def ungTuyen(ma_ttd,ma_uv, file=None):
+
+def sua_cv(
+    cv_id,
+    ten_uv,
+    dia_chi,
+    phone,
+    email,
+    title=None,
+    muc_tieu=None,
+    ky_nang=None,
+    hoc_van=None,
+    giai_thuong=None,
+    major=None,
+    projects=None
+):
+    cv = HoSoXinViec.query.get(cv_id)
+    if not cv:
+        return None
+
+    # cập nhật vào DB
+    cv.ten_hs = ten_uv
+    cv.title = title
+    cv.address = dia_chi
+    cv.phone = phone
+    cv.email = email
+    cv.muc_tieu_nghe_nghiep = muc_tieu
+    cv.ky_nang = json.dumps(ky_nang, ensure_ascii=False)
+    cv.hoc_van = hoc_van
+    cv.projects = json.dumps(projects, ensure_ascii=False)
+
+    # regenerate PDF
+    data = {
+        "avatar": None,
+        "name": ten_uv,
+        "title": title or "",
+        "address": dia_chi,
+        "phone": phone,
+        "email": email,
+        "summary": muc_tieu or "",
+        "skills": ky_nang,
+        "education": {
+            "school": hoc_van or "Chưa cập nhật",
+            "major": major if major else "N/A",
+            "time": "Đang cập nhật"
+        },
+        "projects": projects if projects else []
+    }
+
+    file_bytes = create_cv(data)
+    if file_bytes:
+        upload_result = cloudinary.uploader.upload(
+            io.BytesIO(file_bytes),
+            folder="cv_uploads",
+            resource_type="raw",
+            public_id=f"cv_{cv_id}",
+            overwrite=True
+        )
+        cv.file_cv = upload_result.get("secure_url")
+
+    db.session.commit()
+    return cv
+
+
+
+
+
+def ungTuyen(ma_ttd, ma_uv, file=None, ma_hs=None):
     try:
-        # Kiểm tra nếu user hiện tại không phải ứng viên
         if current_user.loai_tai_khoan != "ungvien":
             print("Chỉ ứng viên mới có thể ứng tuyển")
             return None
 
         # Kiểm tra trùng ứng tuyển
-        existing = UngTuyen.query.filter_by(ma_uv=current_user.id, ma_ttd=ma_ttd).first()
+        existing = UngTuyen.query.filter_by(ma_uv=ma_uv, ma_ttd=ma_ttd).first()
         if existing:
             print("Ứng viên đã ứng tuyển tin này rồi.")
             return None
 
         cv_url = None
-        if file:
+        if file:  # Nếu upload CV
             try:
                 upload_result = cloudinary.uploader.upload(
                     file,
                     folder="cv_uploads",
-                    resource_type="raw"  # nhận PDF, DOCX...
+                    resource_type="raw"
                 )
                 cv_url = upload_result.get("secure_url")
             except Exception as ex:
                 print(f"Lỗi upload CV: {ex}")
                 return None
 
-        # Tạo bản ghi ứng tuyển
         ung_tuyen = UngTuyen(
-            ma_uv=current_user.id,   # dùng id từ current_user (ứng viên)
+            ma_uv=ma_uv,
             ma_ttd=ma_ttd,
             link_cv=cv_url,
+            ma_hs=ma_hs,  # lưu ID hồ sơ nếu có
             ngay_ung_tuyen=datetime.now(),
             trang_thai="Đang chờ"
         )
 
         db.session.add(ung_tuyen)
         db.session.commit()
-        print("Ứng tuyển thành công!")
         return ung_tuyen
 
     except Exception as ex:
