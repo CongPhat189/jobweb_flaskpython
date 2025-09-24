@@ -4,6 +4,7 @@ from WebsiteTimViecLam.HeThongTimViecLam import  db,app
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, Date, DateTime, Enum
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime
+import hashlib
 
 
 class DiaChi(db.Model):
@@ -55,7 +56,12 @@ class TaiKhoan(db.Model,UserMixin):
         "polymorphic_identity": "taikhoan",
         "polymorphic_on": loai_tai_khoan
     }
+class Admin(TaiKhoan):
+    __tablename__ = "tbl_admin"
+    id = Column("MaAdmin", Integer, ForeignKey("tbl_taikhoan.MaTaiKhoan"), primary_key=True)
+    ten_admin = Column("TenAdmin", String(100), nullable=False)
 
+    __mapper_args__ = {"polymorphic_identity": "admin"}
 
 class UngVien(TaiKhoan):
     __tablename__ = "tbl_ungvien"
@@ -185,8 +191,10 @@ class GiaoDich(db.Model):
 
 if __name__=='__main__':
     with app.app_context():
-        db.drop_all()
-        db.create_all()
+        Admin.__table__.create(bind=db.engine, checkfirst=True)
+
+        # db.drop_all()
+        # db.create_all()
 
         diachis = [
             DiaChi(ten_dia_chi="Hà Nội"),
@@ -219,6 +227,17 @@ if __name__=='__main__':
             LoaiCongViec(ten_loai_cv="Remote")
         ]
 
-        db.session.add_all(diachis + capbacs + mucluongs + chuyennganhs + loaicongviecs)
+        # db.session.add_all(diachis + capbacs + mucluongs + chuyennganhs + loaicongviecs)
+        # db.session.commit()
+
+        admin = Admin(
+            username="admin",
+            email="admin@jobconnect.com",
+            mat_khau=hashlib.md5("admin123".encode("utf-8")).hexdigest(),
+            ten_admin="Quản trị viên",
+            loai_tai_khoan="admin"
+        )
+
+        db.session.add(admin)
         db.session.commit()
 
