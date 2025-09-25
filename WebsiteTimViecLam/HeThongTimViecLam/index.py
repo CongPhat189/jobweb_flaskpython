@@ -612,7 +612,7 @@ def admin_dashboard():
     d_chuyennganh = dao.admin_list_category(ChuyenNganh)
     d_loaicv = dao.admin_list_category(LoaiCongViec)
 
-    now = datetime.datetime.now()
+    now = datetime.now()
     return render_template(
         "admin/admin_dashboard.html",
         danh_sach_tin=danh_sach_tin,
