@@ -221,7 +221,7 @@ def create_cv(data, filename="CV_rebuild.pdf"):
     if data.get("avatar"):
         img = Image(data["avatar"], width=100, height=120)
     else:
-        img = Image("https://www.refugee-action.org.uk/wp-content/uploads/2016/10/anonymous-user.png", width=100, height=120)
+        img = Image("/static/img/anonymous_user.jpg", width=100, height=120)
 
     header_table = Table([
         [img, Paragraph(f"<b>{data['name']}</b>", styles["MyName"])]

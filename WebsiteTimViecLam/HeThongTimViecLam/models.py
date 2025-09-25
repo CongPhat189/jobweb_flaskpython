@@ -1,6 +1,6 @@
 from flask_login import UserMixin
 
-from . import  db,app
+from WebsiteTimViecLam.HeThongTimViecLam import  db,app
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, Date, DateTime, Enum
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime
@@ -213,8 +213,9 @@ class GiaoDich(db.Model):
 
 if __name__=='__main__':
     with app.app_context():
-
+        print(db.engine.url)
         db.drop_all()
+        print("✅ DB connected")
         db.create_all()
         Admin.__table__.create(bind=db.engine, checkfirst=True)
 
