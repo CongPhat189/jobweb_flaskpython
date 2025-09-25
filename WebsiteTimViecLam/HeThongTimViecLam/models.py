@@ -1,6 +1,6 @@
 from flask_login import UserMixin
 
-from WebsiteTimViecLam.HeThongTimViecLam import  db,app
+from . import  db,app
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Text, Date, DateTime, Enum
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime

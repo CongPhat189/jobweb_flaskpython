@@ -5,7 +5,6 @@ from authlib.integrations.flask_client import OAuth
 from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user
-from flask_migrate import Migrate
 import cloudinary
 import os
 
@@ -18,7 +17,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+psycopg2://jobweb_user:8Qx2C
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 app.config['PAGE_SIZE']=4
 db=SQLAlchemy(app=app)
-migrate = Migrate(app, db)
 Login=LoginManager(app=app)
 Login.login_view = "login_process"
 Login.login_message = u"⚠️ Bạn cần đăng nhập để tiếp tục."
