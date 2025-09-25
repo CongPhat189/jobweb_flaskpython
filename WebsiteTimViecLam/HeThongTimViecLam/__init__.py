@@ -55,3 +55,5 @@ app.config['MOMO_ENDPOINT'] = "https://test-payment.momo.vn/v2/gateway/api/creat
 app.config['MOMO_RETURN_URL'] = "http://127.0.0.1:5000/momo/return"
 app.config['MOMO_NOTIFY_URL'] = "http://127.0.0.1:5000/momo/notify"
 
+from WebsiteTimViecLam.HeThongTimViecLam import index
+
