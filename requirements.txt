@@ -149,6 +149,7 @@ prompt_toolkit==3.0.47
 proto-plus==1.25.0
 protobuf==5.28.3
 psutil==6.0.0
+psycopg2-binary==2.9.10
 pure-eval==0.2.2
 py-cpuinfo==9.0.0
 pyAesCrypt==6.1.1
