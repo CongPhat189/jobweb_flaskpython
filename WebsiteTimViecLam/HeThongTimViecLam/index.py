@@ -520,8 +520,8 @@ def api_ds_ung_vien(ma_ttd):
 @app.route("/api/thongke/ungtuyen")
 @login_required
 def api_thongke_ungtuyen():
-    month = int(request.args.get("month", datetime.datetime.now().month))
-    year = int(request.args.get("year", datetime.datetime.now().year))
+    month = int(request.args.get("month", datetime.now().month))
+    year = int(request.args.get("year", datetime.now().year))
 
     # Lấy 3 tháng: tháng chọn và 2 tháng trước
     months = []
