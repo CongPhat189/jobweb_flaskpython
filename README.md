@@ -35,4 +35,6 @@ Dự án được xây dựng bằng **Flask (Python)** với cơ sở dữ li�
 - **Frontend**: Bootstrap 5, Jinja2 Template, Chart.js  
 - **Cloud Storage**: Cloudinary (lưu ảnh avatar, CV)  
 - **Thanh toán**: MoMo Payment Gateway  
-- **Khác**: PyMySQL, Werkzeug, Pandas (thống kê)  
+- **Khác**: PyMySQL, Werkzeug, Pandas (thống kê)
+
+🌐 **Link website**: [https://jobweb-flaskpython.onrender.com/](https://jobweb-flaskpython.onrender.com/)
