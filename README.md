@@ -1,4 +1,4 @@
-# 🏢 Open – Hệ Thống Tìm Việc Làm
+# 🏢 OpenJob – Hệ Thống Tìm Việc Làm
 
 **OpenJob** là một ứng dụng web hỗ trợ **kết nối nhà tuyển dụng và ứng viên**.  
 Dự án được xây dựng bằng **Flask (Python)** với cơ sở dữ liệu **MySQL**, hỗ trợ đăng nhập Google, upload CV, quản lý tin tuyển dụng, thanh toán MoMo, và trang quản trị cho admin.
